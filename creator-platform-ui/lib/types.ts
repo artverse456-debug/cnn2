@@ -61,6 +61,15 @@ export type CreatorGroup = {
   feed: FeedPost[];
 };
 
+export type CreatorGroupSpotlight = {
+  id: string;
+  title: string;
+  creator: string;
+  description: string;
+  price: string;
+  avatar: string;
+};
+
 export type FanActivity = {
   id: string;
   action: string;

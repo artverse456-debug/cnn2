@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { creatorGroups, creators, featuredChallenges } from "@/lib/data";
+import { creatorGroups, featuredChallenges, topGroups } from "@/lib/data";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SearchInput } from "@/components/SearchInput";
 import { FilterBar } from "@/components/FilterBar";
-import { CreatorCard } from "@/components/CreatorCard";
 import { ChallengeCard } from "@/components/ChallengeCard";
+import { CreatorGroupSpotlightCard } from "@/components/CreatorGroupSpotlightCard";
 
 export default function ExplorePage() {
   return (
@@ -58,9 +58,11 @@ export default function ExplorePage() {
 
           <div className="space-y-6">
             <p className="text-sm uppercase tracking-[0.3em] text-white/60">Creator Spotlights</p>
-            {creators.map((creator) => (
-              <CreatorCard key={creator.id} creator={creator} />
-            ))}
+            <div className="space-y-4">
+              {topGroups.map((group) => (
+                <CreatorGroupSpotlightCard key={group.id} group={group} />
+              ))}
+            </div>
           </div>
         </div>
         <aside className="space-y-4 rounded-3xl border border-white/5 bg-black/30 p-6 text-white/70">

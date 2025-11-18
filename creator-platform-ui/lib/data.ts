@@ -1,4 +1,4 @@
-import type { Challenge, Creator, CreatorGroup, FanActivity, Reward } from "./types";
+import type { Challenge, Creator, CreatorGroup, CreatorGroupSpotlight, FanActivity, Reward } from "./types";
 
 export const featuredChallenges: Challenge[] = [
   {
@@ -176,6 +176,25 @@ export const creatorGroups: CreatorGroup[] = [
         comments: [{ id: "comment-loop-03", author: "Ava Kai", text: "Mehr Drive bei 2:14, sonst killer!" }]
       }
     ]
+  }
+];
+
+export const topGroups: CreatorGroupSpotlight[] = [
+  {
+    id: "neon-render",
+    creator: "Mila Ray",
+    title: "Neon Render Lab",
+    description: "Private Work-in-Progress room mit exklusiven Szenen & Layer-Files.",
+    price: "€6/Monat",
+    avatar: "https://i.pravatar.cc/160?img=47"
+  },
+  {
+    id: "cine-guild",
+    creator: "Leo Stone",
+    title: "Analog Cine Guild",
+    description: "Notizen, Shotlists & Rough Cuts — nur für Mitglieder.",
+    price: "€6/Monat",
+    avatar: "https://i.pravatar.cc/160?img=12"
   }
 ];
 
