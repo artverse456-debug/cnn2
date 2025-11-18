@@ -7,8 +7,6 @@ import { ChallengeCard } from "@/components/ChallengeCard";
 import { CreatorGroupSpotlightCard } from "@/components/CreatorGroupSpotlightCard";
 
 export default function ExplorePage() {
-  const spotlightGroups = topGroups;
-
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
       <SectionHeader title="Explore Creator" description="Filtere nach Kategorie, Budget oder Challenge" />
@@ -63,7 +61,7 @@ export default function ExplorePage() {
               Creator Spotlights
             </p>
             <div className="space-y-4">
-              {spotlightGroups.map((group) => (
+              {topGroups.map((group) => (
                 <CreatorGroupSpotlightCard key={group.id} group={group} />
               ))}
             </div>
