@@ -29,6 +29,38 @@ export type Reward = {
   stock: number;
 };
 
+export type FeedComment = {
+  id: string;
+  author: string;
+  text: string;
+};
+
+export type FeedPost = {
+  id: string;
+  author: string;
+  role: string;
+  timestamp: string;
+  content: string;
+  image?: string;
+  likes: number;
+  comments: FeedComment[];
+};
+
+export type CreatorGroup = {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  creator: {
+    id: string;
+    name: string;
+    avatar: string;
+    category: string;
+  };
+  perks: string[];
+  feed: FeedPost[];
+};
+
 export type FanActivity = {
   id: string;
   action: string;
