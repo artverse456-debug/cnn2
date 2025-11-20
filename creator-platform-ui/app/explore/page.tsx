@@ -1,10 +1,40 @@
 import Link from "next/link";
-import { creatorGroups, featuredChallenges, topGroups } from "@/lib/data";
+import { creatorGroups, topGroups } from "@/lib/data";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SearchInput } from "@/components/SearchInput";
 import { FilterBar } from "@/components/FilterBar";
-import { ChallengeCard } from "@/components/ChallengeCard";
 import { CreatorGroupSpotlightCard } from "@/components/CreatorGroupSpotlightCard";
+import { MiniChallengeCard, type MiniChallenge } from "@/components/MiniChallengeCard";
+
+const miniChallenges: MiniChallenge[] = [
+  {
+    id: "mc-1",
+    title: "Shorts Remix Battle",
+    icon: "🎬",
+    timeLeft: "2T 6H",
+    entries: 128,
+  },
+  {
+    id: "mc-2",
+    title: "#CreatorPulse Fit",
+    icon: "💪",
+    timeLeft: "5T",
+    entries: 86,
+  },
+  {
+    id: "mc-3",
+    title: "Streetstyle Drop",
+    icon: "🧢",
+    entries: 203,
+  },
+  {
+    id: "mc-4",
+    title: "Weekend Vlog Mini",
+    icon: "📹",
+    timeLeft: "11H",
+    entries: 57,
+  },
+];
 
 export default function ExplorePage() {
   return (
@@ -116,9 +146,9 @@ export default function ExplorePage() {
             <p className="text-xs uppercase tracking-[0.3em] text-white/50">Challenges</p>
             <p className="text-sm">Öffentliche Briefings bleiben verfügbar – aber ohne Feed.</p>
           </div>
-          <div className="space-y-4 opacity-80">
-            {featuredChallenges.map((challenge) => (
-              <ChallengeCard key={challenge.id} challenge={challenge} compact />
+          <div className="space-y-3 opacity-90">
+            {miniChallenges.map((challenge) => (
+              <MiniChallengeCard key={challenge.id} challenge={challenge} />
             ))}
           </div>
         </aside>
