@@ -23,36 +23,80 @@ export default function ExplorePage() {
               </div>
             </div>
             <div className="mt-6 space-y-5">
-              {creatorGroups.map((group) => (
-                <div key={group.id} className="rounded-3xl border border-white/5 bg-black/30 p-6">
-                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                    <div className="flex items-center gap-3">
-                      <img src={group.creator.avatar} alt={group.creator.name} className="h-14 w-14 rounded-2xl object-cover" />
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.3em] text-white/60">{group.creator.category}</p>
-                        <h3 className="text-xl font-semibold text-white">{group.title}</h3>
-                        <p className="text-sm text-white/60">von {group.creator.name}</p>
+              {creatorGroups.map((group) => {
+                const postPreview = group.feed[0];
+
+                return (
+                  <div key={group.id} className="rounded-3xl border border-white/5 bg-black/30 p-6">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="flex items-center gap-3">
+                        <img src={group.creator.avatar} alt={group.creator.name} className="h-14 w-14 rounded-2xl object-cover" />
+                        <div>
+                          <p className="text-xs uppercase tracking-[0.3em] text-white/60">{group.creator.category}</p>
+                          <h3 className="text-xl font-semibold text-white">{group.title}</h3>
+                          <p className="text-sm text-white/60">von {group.creator.name}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm text-white/60">€{group.price}/Monat</p>
+                        <Link
+                          href={`/creators/${group.creator.id}/groups`}
+                          className="mt-2 inline-flex items-center gap-2 rounded-2xl border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/60"
+                        >
+                          Zur Gruppe
+                        </Link>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm text-white/60">€{group.price}/Monat</p>
-                      <Link
-                        href={`/creators/${group.creator.id}/groups`}
-                        className="mt-2 inline-flex items-center gap-2 rounded-2xl border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/60"
-                      >
-                        Zur Gruppe
-                      </Link>
+
+                    <div className="mt-4 grid gap-3 md:grid-cols-2">
+                      <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Mitglieder</p>
+                        <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-white">
+                          <p className="text-2xl font-semibold">{group.members.toLocaleString()}</p>
+                          <p className="text-sm text-white/70">Ø {group.avgMonthlyPoints.toLocaleString()} Punkte/Monat</p>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Über die Gruppe</p>
+                        <p className="mt-2 text-sm text-white/70">{group.description}</p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Aktivität</p>
+                        <p className="mt-2 text-sm text-white/70">Letzte {group.recentPosts} Posts im Feed</p>
+                      </div>
+
+                      <div className="rounded-2xl border border-white/5 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Gruppenregeln</p>
+                        <ul className="mt-2 list-disc space-y-1 pl-4 text-sm text-white/70">
+                          {group.rules.map((rule) => (
+                            <li key={rule}>{rule}</li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="md:col-span-2 rounded-2xl border border-white/5 bg-white/5 p-4">
+                        <p className="text-xs uppercase tracking-[0.3em] text-white/50">Belohnungen</p>
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          {group.rewards.map((reward) => (
+                            <span key={reward} className="rounded-xl border border-white/10 bg-white/10 px-3 py-1 text-sm text-white">
+                              {reward}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      {postPreview && (
+                        <div className="md:col-span-2 rounded-2xl border border-white/5 bg-white/5 p-4">
+                          <p className="text-xs uppercase tracking-[0.3em] text-white/50">Post-Vorschau</p>
+                          <p className="mt-2 text-base text-white">{postPreview.content}</p>
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <p className="mt-4 text-sm text-white/70">{group.description}</p>
-                  {group.feed[0] && (
-                    <div className="mt-4 rounded-2xl border border-white/5 bg-white/5 p-4">
-                      <p className="text-xs uppercase tracking-[0.3em] text-white/50">Post-Vorschau</p>
-                      <p className="mt-2 text-base text-white">{group.feed[0].content}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 

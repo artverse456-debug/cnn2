@@ -51,6 +51,9 @@ export type CreatorGroup = {
   title: string;
   description: string;
   price: number;
+  members: number;
+  avgMonthlyPoints: number;
+  recentPosts: number;
   creator: {
     id: string;
     name: string;
@@ -58,6 +61,8 @@ export type CreatorGroup = {
     category: string;
   };
   perks: string[];
+  rules: string[];
+  rewards: string[];
   feed: FeedPost[];
 };
 
