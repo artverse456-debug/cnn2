@@ -124,7 +124,7 @@ export default function ExplorePage() {
       <FilterBar />
       <div className="grid gap-8 lg:grid-cols-[3fr_2fr]">
         <div className="space-y-10">
-          {activeFilter === "groups" && (
+          {(activeFilter === "groups" || activeFilter === "all") && (
             <section className="rounded-[32px] border border-white/5 bg-white/5 p-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>

@@ -10,7 +10,7 @@ export type DashboardState = {
 };
 
 export const useDashboardStore = create<DashboardState>((set) => ({
-  activeFilter: "groups",
+  activeFilter: "all",
   creatorBalance: 12400,
   fanPoints: 880,
   setActiveFilter: (filter) => set({ activeFilter: filter }),
