@@ -9,7 +9,7 @@ export function SearchInput({ placeholder }: { placeholder?: string }) {
       <span className="text-white/60">🔍</span>
       <input
         className="flex-1 bg-transparent placeholder:text-white/40 focus:outline-none"
-        placeholder={placeholder ?? "Suche Creator, Genres, Preise"}
+        placeholder={placeholder ?? "Suche Creator oder Challenges"}
         value={value}
         onChange={(event) => setValue(event.target.value)}
       />

@@ -4,10 +4,9 @@ import { useDashboardStore } from "@/store/useDashboardStore";
 import { cn } from "@/lib/utils";
 
 const filters = [
-  { id: "all", label: "Alle" },
-  { id: "design", label: "Design" },
-  { id: "music", label: "Music" },
-  { id: "video", label: "Video" }
+  { id: "groups", label: "Gruppen" },
+  { id: "challenges", label: "Challenges" },
+  { id: "top-creators", label: "Top Creator" }
 ];
 
 export function FilterBar() {
