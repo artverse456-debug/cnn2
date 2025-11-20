@@ -6,7 +6,7 @@ import { FilterBar } from "@/components/FilterBar";
 import { CreatorGroupSpotlightCard } from "@/components/CreatorGroupSpotlightCard";
 import { MiniChallengeCard, type MiniChallenge } from "@/components/MiniChallengeCard";
 
-const miniChallenges: MiniChallenge[] = [
+const creatorMiniChallenges: MiniChallenge[] = [
   {
     id: "mc-1",
     title: "Shorts Remix Battle",
@@ -33,6 +33,44 @@ const miniChallenges: MiniChallenge[] = [
     icon: "📹",
     timeLeft: "11H",
     entries: 57,
+  },
+];
+
+const platformMiniChallenges: MiniChallenge[] = [
+  {
+    id: "pmc-1",
+    title: "Kommentiere 3 Beiträge",
+    icon: "💬",
+    points: 20,
+    actionLabel: "Abschließen",
+  },
+  {
+    id: "pmc-2",
+    title: "Like 10 Posts",
+    icon: "❤️",
+    points: 15,
+    actionLabel: "Abschließen",
+  },
+  {
+    id: "pmc-3",
+    title: "Logge dich 3 Tage in Folge ein",
+    icon: "📅",
+    points: 50,
+    actionLabel: "Abschließen",
+  },
+  {
+    id: "pmc-4",
+    title: "Teile einen Beitrag",
+    icon: "📤",
+    points: 10,
+    actionLabel: "Abschließen",
+  },
+  {
+    id: "pmc-5",
+    title: "Füge ein Profilbild hinzu",
+    icon: "🖼️",
+    points: 25,
+    actionLabel: "Abschließen",
   },
 ];
 
@@ -147,9 +185,18 @@ export default function ExplorePage() {
             <p className="text-sm">Öffentliche Briefings bleiben verfügbar – aber ohne Feed.</p>
           </div>
           <div className="space-y-3 opacity-90">
-            {miniChallenges.map((challenge) => (
-              <MiniChallengeCard key={challenge.id} challenge={challenge} />
-            ))}
+            <div className="space-y-3">
+              {creatorMiniChallenges.map((challenge) => (
+                <MiniChallengeCard key={challenge.id} challenge={challenge} />
+              ))}
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <p className="text-xs uppercase tracking-[0.3em] text-white/50">Plattform Mini-Challenges</p>
+              {platformMiniChallenges.map((challenge) => (
+                <MiniChallengeCard key={challenge.id} challenge={challenge} />
+              ))}
+            </div>
           </div>
         </aside>
       </div>
