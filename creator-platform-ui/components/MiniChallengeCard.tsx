@@ -5,7 +5,9 @@ export type MiniChallenge = {
   title: string;
   icon: ReactNode;
   timeLeft?: string;
-  entries: number;
+  entries?: number;
+  points?: number;
+  actionLabel?: string;
 };
 
 export function MiniChallengeCard({ challenge }: { challenge: MiniChallenge }) {
@@ -23,9 +25,11 @@ export function MiniChallengeCard({ challenge }: { challenge: MiniChallenge }) {
             )}
           </div>
         </div>
-        <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary-light">
-          {challenge.entries} Einsendungen
-        </span>
+        {(challenge.entries || challenge.points) && (
+          <span className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[11px] font-semibold text-primary-light">
+            {challenge.entries ? `${challenge.entries} Einsendungen` : `${challenge.points} Punkte`}
+          </span>
+        )}
       </div>
       <div className="mt-4 flex items-center justify-between">
         <div className="flex items-center gap-2 text-xs text-white/60">
@@ -33,7 +37,7 @@ export function MiniChallengeCard({ challenge }: { challenge: MiniChallenge }) {
           <span>Aktiv</span>
         </div>
         <button className="rounded-xl border border-primary/30 bg-primary px-3.5 py-2 text-sm font-semibold text-white transition hover:border-primary/50 hover:bg-primary/80">
-          Teilnehmen
+          {challenge.actionLabel ?? "Teilnehmen"}
         </button>
       </div>
     </div>
