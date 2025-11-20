@@ -4,6 +4,7 @@ import { useDashboardStore } from "@/store/useDashboardStore";
 import { cn } from "@/lib/utils";
 
 const filters = [
+  { id: "all", label: "Alle" },
   { id: "groups", label: "Gruppen" },
   { id: "challenges", label: "Challenges" },
   { id: "top-creators", label: "Top Creator" }
