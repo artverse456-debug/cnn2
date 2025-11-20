@@ -13,8 +13,9 @@ type TopCreator = {
   name: string;
   avatar: string;
   category: string;
-  followers: number;
-  points: number;
+  followers?: number;
+  members?: number;
+  points?: number;
 };
 
 const creatorMiniChallenges: MiniChallenge[] = [
@@ -117,6 +118,39 @@ export default function ExplorePage() {
   const { activeFilter } = useDashboardStore();
   const allChallenges = [...creatorMiniChallenges, ...platformMiniChallenges];
 
+  const hasFollowersData = topCreators.some((creator) => typeof creator.followers === "number");
+  const hasMembersData = topCreators.some((creator) => typeof creator.members === "number");
+  const hasPointsData = topCreators.some((creator) => typeof creator.points === "number");
+
+  const getRankValue = (creator: TopCreator) => {
+    if (hasFollowersData) return creator.followers ?? 0;
+    if (hasMembersData) return creator.members ?? 0;
+    if (hasPointsData) return creator.points ?? 0;
+    return 0;
+  };
+
+  const getMetricLabel = (creator: TopCreator) => {
+    if (hasFollowersData && creator.followers !== undefined) {
+      return `${creator.followers.toLocaleString()} Follower`;
+    }
+
+    if (hasMembersData && creator.members !== undefined) {
+      return `${creator.members.toLocaleString()} Mitglieder`;
+    }
+
+    if (hasPointsData && creator.points !== undefined) {
+      return `${creator.points.toLocaleString()} Punkte`;
+    }
+
+    return undefined;
+  };
+
+  const sortedTopCreators = [...topCreators].sort((a, b) => getRankValue(b) - getRankValue(a));
+  const topThreeCreators =
+    hasFollowersData || hasMembersData || hasPointsData
+      ? sortedTopCreators.slice(0, 3)
+      : topCreators.slice(0, 3);
+
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
       <SectionHeader title="Explore Creator" description="Filtere nach Kategorie, Budget oder Challenge" />
@@ -212,6 +246,57 @@ export default function ExplorePage() {
             </section>
           )}
 
+          {activeFilter === "all" && (
+            <section className="rounded-[32px] border border-white/5 bg-white/5 p-6">
+              <div className="flex flex-wrap items-end justify-between gap-3">
+                <div>
+                  <p className="text-sm uppercase tracking-[0.3em] text-white/60">Top Creator</p>
+                  <h2 className="text-3xl font-semibold text-white">Top 3 Communities</h2>
+                  <p className="text-white/60">Ranking nach Followern, Mitgliedern oder Punkten.</p>
+                </div>
+              </div>
+              <div className="mt-6 space-y-4">
+                {topThreeCreators.map((creator, index) => {
+                  const metricLabel = getMetricLabel(creator);
+
+                  return (
+                    <div key={creator.id} className="rounded-3xl border border-white/5 bg-black/30 p-6">
+                      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-center gap-3">
+                          <span className="flex h-10 w-10 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-sm font-semibold text-white/70">
+                            #{index + 1}
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <img src={creator.avatar} alt={creator.name} className="h-14 w-14 rounded-2xl object-cover" />
+                            <div>
+                              <p className="text-xs uppercase tracking-[0.3em] text-white/60">{creator.category}</p>
+                              <h3 className="text-xl font-semibold text-white">{creator.name}</h3>
+                              {metricLabel && <p className="text-sm text-white/60">{metricLabel}</p>}
+                              <p className="text-sm text-white/60">Top Creator</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 text-right">
+                          {creator.points !== undefined && (
+                            <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80">
+                              {creator.points} Punkte
+                            </div>
+                          )}
+                          <Link
+                            href={`/creators/${creator.id}/groups`}
+                            className="rounded-2xl border border-primary/40 bg-primary/80 px-4 py-2 text-sm font-semibold text-white transition hover:border-primary/60 hover:bg-primary"
+                          >
+                            Zur Gruppe
+                          </Link>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {activeFilter === "challenges" && (
             <section className="rounded-[32px] border border-white/5 bg-white/5 p-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
@@ -251,17 +336,23 @@ export default function ExplorePage() {
                           <div>
                             <p className="text-xs uppercase tracking-[0.3em] text-white/60">{creator.category}</p>
                             <h3 className="text-xl font-semibold text-white">{creator.name}</h3>
-                            <p className="text-sm text-white/60">{creator.followers.toLocaleString()} Follower</p>
+                            {getMetricLabel(creator) && <p className="text-sm text-white/60">{getMetricLabel(creator)}</p>}
+                            <p className="text-sm text-white/60">Top Creator</p>
                           </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-3 text-right">
-                        <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80">
-                          {creator.points} Punkte
-                        </div>
-                        <button className="rounded-2xl border border-primary/40 bg-primary/80 px-4 py-2 text-sm font-semibold text-white transition hover:border-primary/60 hover:bg-primary">
-                          Profil öffnen
-                        </button>
+                        {creator.points !== undefined && (
+                          <div className="rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm text-white/80">
+                            {creator.points} Punkte
+                          </div>
+                        )}
+                        <Link
+                          href={`/creators/${creator.id}/groups`}
+                          className="rounded-2xl border border-primary/40 bg-primary/80 px-4 py-2 text-sm font-semibold text-white transition hover:border-primary/60 hover:bg-primary"
+                        >
+                          Zur Gruppe
+                        </Link>
                       </div>
                     </div>
                   </div>
