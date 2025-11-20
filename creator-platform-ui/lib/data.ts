@@ -75,6 +75,9 @@ export const creatorGroups: CreatorGroup[] = [
     title: "Neon Render Lab",
     description: "Private Work-in-Progress room for Mila Rays volumetrische Szenen, inklusive Layer-Files und wöchentlichen Live-Q&As.",
     price: 8,
+    members: 864,
+    avgMonthlyPoints: 1420,
+    recentPosts: 5,
     creator: {
       id: "mila-ray",
       name: "Mila Ray",
@@ -82,6 +85,8 @@ export const creatorGroups: CreatorGroup[] = [
       category: "Immersive Design"
     },
     perks: ["Scene Breakdown Drops", "Feedback Threads", "Stash of ready-to-use shaders"],
+    rules: ["Keine finalen Client-Files teilen", "Feedback in Threads halten", "Credits für verwendete Presets geben"],
+    rewards: ["Shader Preset Bundle", "1:1 Crit Session", "Early Access Scene Files"],
     feed: [
       {
         id: "post-neon-01",
@@ -112,6 +117,9 @@ export const creatorGroups: CreatorGroup[] = [
     title: "Analog Cine Guild",
     description: "Leo Stone öffnet seine Tagebücher: Shotlists, Kontaktabzüge und Rough Cuts – nur für Mitglieder.",
     price: 6,
+    members: 512,
+    avgMonthlyPoints: 980,
+    recentPosts: 4,
     creator: {
       id: "leo-stone",
       name: "Leo Stone",
@@ -119,6 +127,8 @@ export const creatorGroups: CreatorGroup[] = [
       category: "Cinematic Story"
     },
     perks: ["Monatliche Filmstudien", "Location-Scouting-PDFs", "Kommentarspuren zu Rough Cuts"],
+    rules: ["Footage vertraulich behandeln", "Respektvolle Kritik", "Keine Spoiler ohne Tag"],
+    rewards: ["Analog Grain Pack", "Storyboard Template", "Private Rough Cut Screening"],
     feed: [
       {
         id: "post-cine-01",
@@ -146,6 +156,9 @@ export const creatorGroups: CreatorGroup[] = [
     title: "Loop Society",
     description: "Ava Kais Members-only Soundpack Drops + Remix Battles mit exklusiven Stems.",
     price: 5,
+    members: 1043,
+    avgMonthlyPoints: 1675,
+    recentPosts: 6,
     creator: {
       id: "ava-kai",
       name: "Ava Kai",
@@ -153,6 +166,8 @@ export const creatorGroups: CreatorGroup[] = [
       category: "Audio Reactor"
     },
     perks: ["Stems aus Live-Sets", "Discord Listening Parties", "Monatliche Remix Battles"],
+    rules: ["Samples nur für Members nutzen", "Battles wöchentlich voten", "Kritik konstruktiv halten"],
+    rewards: ["Exclusive Stems Pack", "VIP Listening Session", "Remix Battle Spotlight"],
     feed: [
       {
         id: "post-loop-01",
