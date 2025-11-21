@@ -11,7 +11,7 @@ export function ChallengeCard({ challenge, compact }: { challenge: Challenge; co
           <p className="text-xs text-white/60">{challenge.reward}</p>
         </div>
         <span className="rounded-full border border-primary/20 px-3 py-1 text-xs text-primary-light">
-          {formatCurrency(challenge.price, "EUR")}
+          {challenge.badgeLabel ?? formatCurrency(challenge.price, "EUR")}
         </span>
       </div>
       <p className="mt-4 text-white/70">{challenge.description}</p>
@@ -25,9 +25,9 @@ export function ChallengeCard({ challenge, compact }: { challenge: Challenge; co
         </div>
       )}
       <div className="mt-4 flex items-center justify-between text-xs text-white/50">
-        <p>{challenge.entries} Einsendungen</p>
+        <p>{challenge.entriesLabel ?? `${challenge.entries} Einsendungen`}</p>
         <Link href={`/challenges/${challenge.id}`} className="text-primary-light">
-          Details
+          {challenge.linkLabel ?? "Details"}
         </Link>
       </div>
     </div>
