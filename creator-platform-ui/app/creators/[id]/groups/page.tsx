@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { creatorGroups } from "@/lib/data";
+import { RewardCard } from "@/components/RewardCard";
+import { creatorGroups, rewards as rewardCatalog } from "@/lib/data";
 import { Feed } from "@/components/groups/Feed";
 import { RewardsModal } from "@/components/groups/RewardsModal";
 import { useGroupMembershipStore } from "@/store/useGroupMembershipStore";
@@ -26,6 +27,22 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
   }
 
   const isMember = joinedGroups.includes(group.id);
+  const rewardDetails =
+    group.rewards.length > 0
+      ? group.rewards.map((rewardTitle, index) => {
+          const fallback = rewardCatalog[index % rewardCatalog.length];
+
+          return {
+            ...fallback,
+            id: `${group.id}-reward-${index}`,
+            title: rewardTitle,
+            description: fallback.description
+          };
+        })
+      : rewardCatalog;
+
+  const activityPreview = group.feed.slice(0, 3);
+  const extendedDescription = `${group.description} Diese Gruppe enthält zusätzliche Deep-Dives, Dateien und Feedback-Loops, bevor du beitrittst.`;
 
   const handleMembership = () => {
     if (isMember) {
@@ -66,6 +83,71 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
               {perk}
             </span>
           ))}
+        </div>
+      </section>
+
+      <section className="grid gap-6 md:grid-cols-2">
+        <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">Über die Gruppe</p>
+          <p className="mt-3 text-base text-white/80">{extendedDescription}</p>
+        </div>
+
+        <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">Vorteile</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {(group.perks.length ? group.perks : ["Livestreams", "Feedback", "Preset-Downloads"]).map((perk) => (
+              <span key={perk} className="rounded-xl border border-white/10 bg-white/10 px-3 py-1 text-sm text-white">
+                {perk}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-white/60">Belohnungen</p>
+              <p className="text-sm text-white/60">Direkt verfügbar vor dem Beitritt</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowRewards(true)}
+              className="rounded-2xl border border-white/30 px-4 py-2 text-sm font-semibold text-white transition hover:border-white/60"
+            >
+              Alle Rewards
+            </button>
+          </div>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {rewardDetails.map((reward) => (
+              <RewardCard key={reward.id} reward={reward} />
+            ))}
+          </div>
+        </div>
+
+        <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">Gruppenregeln</p>
+          <ul className="mt-3 list-disc space-y-1 pl-4 text-sm text-white/70">
+            {(group.rules.length ? group.rules : ["Regeln folgen nach Join", "Bleib respektvoll", "Keine Spam-Posts"]).map((rule) => (
+              <li key={rule}>{rule}</li>
+            ))}
+          </ul>
+        </div>
+
+        <div className="md:col-span-2 rounded-3xl border border-white/5 bg-white/5 p-6">
+          <p className="text-xs uppercase tracking-[0.3em] text-white/60">Letzte 3 Posts</p>
+          {activityPreview.length > 0 ? (
+            <div className="mt-4 grid gap-4 md:grid-cols-3">
+              {activityPreview.map((post) => (
+                <div key={post.id} className="rounded-2xl border border-white/5 bg-black/30 p-4">
+                  <p className="text-sm font-semibold text-white">{post.author}</p>
+                  <p className="text-xs uppercase tracking-[0.3em] text-white/60">{post.role}</p>
+                  <p className="mt-2 text-sm text-white/70">{post.content.slice(0, 120)}{post.content.length > 120 ? "…" : ""}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-4 rounded-2xl border border-white/5 bg-black/30 p-4 text-sm text-white/70">Noch keine Posts – Updates folgen.</div>
+          )}
         </div>
       </section>
 
