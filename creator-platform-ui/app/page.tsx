@@ -13,17 +13,20 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl space-y-6 px-4">
         <SectionHeader
           title="CreatorPulse Radar"
-          description="Überblick über Challenges, Gruppen und Rewards, die aktuell auf CreatorPulse laufen."
-          action={<Link href="/explore" className="text-primary-light">Alle Creator anzeigen</Link>}
+          description="CreatorPulse Radar zeigt Aktivität, Gruppengrößen und Reward-Einlösungen der letzten 30 Tage."
+          action={<Link href="/explore" className="text-primary-light">Alle Gruppen & Creator ansehen</Link>}
         />
         <div className="grid gap-6 md:grid-cols-3">
-          <StatCard label="Ausgezahlte Rewards (30d)" value="€ 82.4K" trend={<span className="text-xs text-emerald-400">+18%</span>} />
-          <StatCard label="Fans in Challenges" value="12.4K" trend={<span className="text-xs text-emerald-400">+9%</span>} />
-          <StatCard label="Ø Ticket pro Challenge" value="€ 42" trend={<span className="text-xs text-rose-300">-3%</span>} />
+          <StatCard label="Eingelöste Rewards (30d)" value="€ 82.4K" trend={<span className="text-xs text-emerald-400">+18%</span>} />
+          <StatCard label="Premium-Fans mit Point-Boost" value="12.4K" trend={<span className="text-xs text-emerald-400">+9%</span>} />
+          <StatCard label="Ø Reward-Wert" value="€ 42" trend={<span className="text-xs text-rose-300">-3%</span>} />
         </div>
       </section>
       <section className="mx-auto max-w-6xl space-y-6 px-4">
-        <SectionHeader title="Gefragte Creator" description="Profile mit hoher Aktivität auf CreatorPulse" />
+        <SectionHeader
+          title="Beliebte Gruppen & Creator"
+          description="Öffentliche Fanclubs mit Free- und Premium-Beitritten, die Points und Rewards steuern."
+        />
         <div className="grid gap-6 md:grid-cols-3">
           {creators.map((creator) => (
             <CreatorCard key={creator.id} creator={creator} />
@@ -31,7 +34,10 @@ export default function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-6xl space-y-6 px-4 pb-16">
-        <SectionHeader title="Aktive Challenges" description="Offene Briefings mit Punkten, Rewards und exklusiven Drops" />
+        <SectionHeader
+          title="Neueste Aktivitäten und Fan-Möglichkeiten"
+          description="Engagement-Aktionen, Punktboosts und neue Rewards, die Creator für ihre Gruppen live stellen."
+        />
         <div className="grid gap-6 md:grid-cols-3">
           {featuredChallenges.map((challenge) => (
             <ChallengeCard key={challenge.id} challenge={challenge} />
