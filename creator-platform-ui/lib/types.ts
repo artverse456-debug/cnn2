@@ -42,6 +42,8 @@ export type FeedPost = {
   timestamp: string;
   content: string;
   image?: string;
+  images?: string[];
+  videos?: string[];
   likes: number;
   comments: FeedComment[];
 };

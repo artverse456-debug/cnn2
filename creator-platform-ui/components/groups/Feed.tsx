@@ -25,6 +25,8 @@ export function Feed({ posts }: FeedProps) {
         const liked = likes[post.id] ?? false;
         const totalLikes = post.likes + (liked ? 1 : 0);
         const combinedComments = [...post.comments, ...(comments[post.id] ?? [])];
+        const images = post.images ?? (post.image ? [post.image] : []);
+        const videos = post.videos ?? [];
 
         return (
           <article key={post.id} className="rounded-3xl border border-white/5 bg-white/5 p-6">
@@ -36,12 +38,30 @@ export function Feed({ posts }: FeedProps) {
               </div>
             </div>
             <p className="mt-4 text-base text-white/80">{post.content}</p>
-            {post.image && (
-              <img
-                src={post.image}
-                alt="Group post visual"
-                className="mt-4 w-full rounded-2xl border border-white/5 object-cover"
-              />
+            {images.length > 0 && (
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {images.map((src, index) => (
+                  <img
+                    key={src + index}
+                    src={src}
+                    alt="Group post visual"
+                    className="h-full w-full rounded-2xl border border-white/5 object-cover"
+                  />
+                ))}
+              </div>
+            )}
+            {videos.length > 0 && (
+              <div className="mt-4 grid gap-3">
+                {videos.map((src, index) => (
+                  <video
+                    key={src + index}
+                    controls
+                    playsInline
+                    className="w-full rounded-2xl border border-white/5"
+                    src={src}
+                  />
+                ))}
+              </div>
             )}
             <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-white/70">
               <button
