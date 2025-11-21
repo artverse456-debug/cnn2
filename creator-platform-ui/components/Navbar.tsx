@@ -2,86 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { BrandLogo } from "./BrandLogo";
 
 type UserRole = "creator" | "fan" | null;
-
-type SupabaseUser = {
-  user_metadata?: {
-    role?: string;
-  };
-} | null;
-
-type SupabaseUserResponse = {
-  data: {
-    user: SupabaseUser;
-  };
-  error: Error | null;
-};
-
-function createSupabaseAuthClient() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  let projectRef: string | null = null;
-
-  if (supabaseUrl) {
-    try {
-      projectRef = new URL(supabaseUrl).hostname.split(".")[0];
-    } catch (error) {
-      console.error("Invalid Supabase URL", error);
-    }
-  }
-
-  async function getAccessToken() {
-    if (typeof window === "undefined" || !projectRef) return null;
-
-    const authData = localStorage.getItem(`sb-${projectRef}-auth-token`);
-
-    if (!authData) return null;
-
-    try {
-      const parsedAuth = JSON.parse(authData);
-      return parsedAuth?.currentSession?.access_token ?? null;
-    } catch (error) {
-      console.error("Failed to parse Supabase auth token", error);
-      return null;
-    }
-  }
-
-  return {
-    auth: {
-      async getUser(): Promise<SupabaseUserResponse> {
-        if (!supabaseUrl || !supabaseAnonKey) {
-          return { data: { user: null }, error: new Error("Supabase credentials missing") };
-        }
-
-        const accessToken = await getAccessToken();
-
-        if (!accessToken) return { data: { user: null }, error: null };
-
-        try {
-          const response = await fetch(`${supabaseUrl}/auth/v1/user`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-              apikey: supabaseAnonKey
-            }
-          });
-
-          if (!response.ok) {
-            return { data: { user: null }, error: new Error("Failed to load Supabase user") };
-          }
-
-          const user = (await response.json()) as SupabaseUser;
-          return { data: { user }, error: null };
-        } catch (error) {
-          console.error("Error fetching Supabase user", error);
-          return { data: { user: null }, error: error as Error };
-        }
-      }
-    }
-  };
-}
 
 const links = [
   { href: "/explore", label: "Explore" },
@@ -91,28 +15,39 @@ const links = [
   { href: "/settings", label: "Settings" }
 ];
 
-const supabase = createSupabaseAuthClient();
-
 export function Navbar() {
   const [role, setRole] = useState<UserRole>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
-    let isActive = true;
+    const session = supabaseAuthClient.getSession();
+    const storedRole = (session?.user?.user_metadata?.role as UserRole) ?? null;
 
-    const fetchRole = async () => {
-      const { data } = await supabase.auth.getUser();
+    setRole(storedRole);
+    setIsAuthenticated(!!session);
 
-      if (!isActive) return;
+    let isMounted = true;
+
+    const fetchUser = async () => {
+      const { data } = await supabaseAuthClient.getUser();
+      if (!isMounted) return;
 
       const userRole = (data.user?.user_metadata?.role as UserRole) ?? null;
-
       setRole(userRole);
+      setIsAuthenticated(!!data.user);
     };
 
-    fetchRole();
+    fetchUser();
+
+    const unsubscribe = supabaseAuthClient.onAuthStateChange((updatedSession) => {
+      const nextRole = (updatedSession?.user?.user_metadata?.role as UserRole) ?? null;
+      setRole(nextRole);
+      setIsAuthenticated(!!updatedSession);
+    });
 
     return () => {
-      isActive = false;
+      isMounted = false;
+      unsubscribe();
     };
   }, []);
 
@@ -121,6 +56,16 @@ export function Navbar() {
     if (role === "fan" && link.label === "Creator Hub") return false;
     return true;
   });
+
+  const handleLogout = async () => {
+    try {
+      await supabaseAuthClient.signOut();
+      setRole(null);
+      setIsAuthenticated(false);
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 backdrop-blur bg-black/40 border-b border-white/5">
@@ -134,18 +79,29 @@ export function Navbar() {
           ))}
         </nav>
         <div className="flex items-center gap-3">
-          <Link
-            href="/auth/login"
-            className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
-          >
-            Login
-          </Link>
-          <Link
-            href="/auth/register"
-            className="hidden rounded-full bg-gradient-to-r from-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 sm:block"
-          >
-            Join Beta
-          </Link>
+          {isAuthenticated ? (
+            <button
+              onClick={handleLogout}
+              className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
+            >
+              Logout
+            </button>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
+              >
+                Login
+              </Link>
+              <Link
+                href="/auth/register"
+                className="hidden rounded-full bg-gradient-to-r from-primary to-accent px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-primary/40 sm:block"
+              >
+                Join Beta
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </header>
