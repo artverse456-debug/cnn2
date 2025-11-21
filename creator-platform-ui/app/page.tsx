@@ -12,18 +12,18 @@ export default function LandingPage() {
       <Hero />
       <section className="mx-auto max-w-6xl space-y-6 px-4">
         <SectionHeader
-          title="Creator Economy Radar"
-          description="Echte Daten simuliert mit Dummy-Inhalten für diese Demo."
-          action={<Link href="/explore" className="text-primary-light">Alle Creator</Link>}
+          title="CreatorPulse Radar"
+          description="Überblick über Challenges, Gruppen und Rewards, die aktuell auf CreatorPulse laufen."
+          action={<Link href="/explore" className="text-primary-light">Alle Creator anzeigen</Link>}
         />
         <div className="grid gap-6 md:grid-cols-3">
-          <StatCard label="Umsatz (30d)" value="€ 82.4K" trend={<span className="text-xs text-emerald-400">+18%</span>} />
-          <StatCard label="Aktive Fans" value="12.4K" trend={<span className="text-xs text-emerald-400">+9%</span>} />
-          <StatCard label="Ø Challenge Preis" value="€ 42" trend={<span className="text-xs text-rose-300">-3%</span>} />
+          <StatCard label="Ausgezahlte Rewards (30d)" value="€ 82.4K" trend={<span className="text-xs text-emerald-400">+18%</span>} />
+          <StatCard label="Fans in Challenges" value="12.4K" trend={<span className="text-xs text-emerald-400">+9%</span>} />
+          <StatCard label="Ø Ticket pro Challenge" value="€ 42" trend={<span className="text-xs text-rose-300">-3%</span>} />
         </div>
       </section>
       <section className="mx-auto max-w-6xl space-y-6 px-4">
-        <SectionHeader title="Trending Creator" description="Jede Woche kuratiert" />
+        <SectionHeader title="Gefragte Creator" description="Profile mit hoher Aktivität auf CreatorPulse" />
         <div className="grid gap-6 md:grid-cols-3">
           {creators.map((creator) => (
             <CreatorCard key={creator.id} creator={creator} />
@@ -31,7 +31,7 @@ export default function LandingPage() {
         </div>
       </section>
       <section className="mx-auto max-w-6xl space-y-6 px-4 pb-16">
-        <SectionHeader title="Live Challenges" description="Experimentiere mit kreativen Briefings" />
+        <SectionHeader title="Aktive Challenges" description="Offene Briefings mit Punkten, Rewards und exklusiven Drops" />
         <div className="grid gap-6 md:grid-cols-3">
           {featuredChallenges.map((challenge) => (
             <ChallengeCard key={challenge.id} challenge={challenge} />
