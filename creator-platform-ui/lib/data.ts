@@ -1,35 +1,44 @@
-import type { Challenge, Creator, CreatorGroup, CreatorGroupSpotlight, FanActivity, Reward } from "./types";
+import type { Challenge, Creator, CreatorGroup, CreatorGroupSpotlight, FanActivity, GroupCard, Reward } from "./types";
 
 export const featuredChallenges: Challenge[] = [
   {
-    id: "challenge-sprint",
-    title: "CreatorPulse Highlight Reel",
-    description: "Creator veröffentlichen ein Briefing für einen 45s Reel, Fans reichen Beiträge ein und sammeln Punkte.",
-    reward: "€5.000 Produktionsbudget + Feature",
-    entries: 128,
-    deadline: "2025-05-20",
-    price: 49,
-    tags: ["video", "community", "reel"]
+    id: "points-quests",
+    title: "Punkte-Quests",
+    description: "Erledige kleine Aufgaben wie Kommentieren, Liken oder Teilen und erhalte sofort Punkte.",
+    reward: "Sofortpunkte pro Aktion",
+    entries: 1840,
+    deadline: "rolling",
+    price: 0,
+    badgeLabel: "Live",
+    entriesLabel: "1840 Fans aktiv diese Woche",
+    linkLabel: "Quests öffnen",
+    tags: ["engagement", "punkte", "quests"]
   },
   {
-    id: "challenge-rave",
-    title: "Live Remix Challenge",
-    description: "Ein Creator stellt Stem-Pakete bereit, Fans remixen live und werden in der Gruppe gefeatured.",
-    reward: "VIP Listening Pass",
-    entries: 312,
-    deadline: "2025-05-29",
-    price: 29,
-    tags: ["music", "remix", "live"]
+    id: "new-rewards",
+    title: "Neue Rewards verfügbar",
+    description: "Creator haben neue Belohnungen freigeschaltet: digitale Packs, Shoutouts und limitierter Merch.",
+    reward: "Reward-Drops in Premium & Public",
+    entries: 326,
+    deadline: "rolling",
+    price: 0,
+    badgeLabel: "Drops aktiv",
+    entriesLabel: "326 Rewards wurden diese Woche eingelöst",
+    linkLabel: "Rewards ansehen",
+    tags: ["rewards", "drops", "fanclub"]
   },
   {
-    id: "challenge-story",
-    title: "Community Story Drop",
-    description: "Eine 90s Story über die stärksten Fans des Creators – eingereicht, gevotet und mit Punkten belohnt.",
-    reward: "Mentoring Call + Gear Bundle",
-    entries: 67,
-    deadline: "2025-06-01",
-    price: 79,
-    tags: ["story", "fans", "impact"]
+    id: "subscription-boosts",
+    title: "Abo-Boosts",
+    description: "Premium-Fans erhalten monatlich Punkte automatisch gutgeschrieben.",
+    reward: "Automatische Punkte-Gutschrift",
+    entries: 912,
+    deadline: "rolling",
+    price: 0,
+    badgeLabel: "Auto-Boost",
+    entriesLabel: "912 Boosts im letzten Monat",
+    linkLabel: "Details öffnen",
+    tags: ["abo", "punkte", "boost"]
   }
 ];
 
@@ -66,6 +75,39 @@ export const creators: Creator[] = [
     bio: "Produziert elektronische Sets und hostet wöchentliche Remix-Challenges mit Rewards auf CreatorPulse.",
     highlights: ["Tomorrowland Newcomer", "LoopLab Gründerin", "CreatorPulse Live Battles"],
     challenges: [featuredChallenges[1]]
+  }
+];
+
+export const popularGroups: GroupCard[] = [
+  {
+    id: "neon-render-lab",
+    title: "Neon Render Lab",
+    creator: "Mila Ray",
+    avatar: "https://i.pravatar.cc/160?img=47",
+    description: "Wöchentliche AR-Render-Drops, Fanpunkte für Feedback und Rewards mit Shader-Presets.",
+    priceLabel: "ab 7 € / Monat",
+    members: 2480,
+    avgMonthlyPoints: 1680
+  },
+  {
+    id: "analog-cine-guild",
+    title: "Analog Cine Guild",
+    creator: "Leo Stone",
+    avatar: "https://i.pravatar.cc/160?img=12",
+    description: "Storyboards, Shotlists und Fan-Votings mit Punkte-Belohnungen für Rough-Cut Feedback.",
+    priceLabel: "ab 5 € / Monat",
+    members: 1730,
+    avgMonthlyPoints: 1240
+  },
+  {
+    id: "loop-society",
+    title: "Loop Society",
+    creator: "Ava Kai",
+    avatar: "https://i.pravatar.cc/160?img=32",
+    description: "Remix-Battles mit automatischen Punkte-Boosts, exklusive Stems und monatliche Reward-Drops.",
+    priceLabel: "ab 3 € / Monat",
+    members: 3180,
+    avgMonthlyPoints: 1910
   }
 ];
 

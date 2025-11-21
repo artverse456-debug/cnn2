@@ -6,6 +6,9 @@ export type Challenge = {
   entries: number;
   deadline: string;
   price: number;
+  badgeLabel?: string;
+  entriesLabel?: string;
+  linkLabel?: string;
   tags: string[];
 };
 
@@ -19,6 +22,17 @@ export type Creator = {
   bio: string;
   highlights: string[];
   challenges: Challenge[];
+};
+
+export type GroupCard = {
+  id: string;
+  title: string;
+  creator: string;
+  avatar: string;
+  description: string;
+  priceLabel: string;
+  members: number;
+  avgMonthlyPoints: number;
 };
 
 export type Reward = {
