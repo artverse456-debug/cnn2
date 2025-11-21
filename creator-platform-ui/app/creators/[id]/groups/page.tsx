@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RewardCard } from "@/components/RewardCard";
 import { creatorGroups, rewards as rewardCatalog } from "@/lib/data";
 import { Feed } from "@/components/groups/Feed";
 import { RewardsModal } from "@/components/groups/RewardsModal";
+import type { FeedPost } from "@/lib/types";
 import { useGroupMembershipStore } from "@/store/useGroupMembershipStore";
 
 type CreatorGroupPageProps = {
@@ -15,6 +16,17 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
   const group = creatorGroups.find((item) => item.creator.id === params.id);
   const { joinedGroups, joinGroup, leaveGroup } = useGroupMembershipStore();
   const [showRewards, setShowRewards] = useState(false);
+  const [showCreatePost, setShowCreatePost] = useState(false);
+  const [postText, setPostText] = useState("");
+  const [postImages, setPostImages] = useState<File[]>([]);
+  const [postVideos, setPostVideos] = useState<File[]>([]);
+  const [feedPosts, setFeedPosts] = useState<FeedPost[]>(group?.feed ?? []);
+
+  useEffect(() => {
+    if (group) {
+      setFeedPosts(group.feed);
+    }
+  }, [group]);
 
   if (!group) {
     return (
@@ -41,7 +53,7 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
         })
       : rewardCatalog;
 
-  const activityPreview = group.feed.slice(0, 3);
+  const activityPreview = feedPosts.slice(0, 3);
   const extendedDescription = `${group.description} Diese Gruppe enthält zusätzliche Deep-Dives, Dateien und Feedback-Loops, bevor du beitrittst.`;
 
   const handleMembership = () => {
@@ -50,6 +62,37 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
     } else {
       joinGroup(group.id);
     }
+  };
+
+  const handleFileSelect = (files: FileList | null, setter: (files: File[]) => void) => {
+    const selectedFiles = files ? Array.from(files) : [];
+    setter(selectedFiles);
+  };
+
+  const handleCreatePost = () => {
+    const text = postText.trim();
+    if (!text) return;
+
+    const imageUrls = postImages.map((file) => URL.createObjectURL(file));
+    const videoUrls = postVideos.map((file) => URL.createObjectURL(file));
+
+    const newPost: FeedPost = {
+      id: `new-post-${Date.now()}`,
+      author: "Du",
+      role: "Member",
+      timestamp: "Gerade eben",
+      content: text,
+      images: imageUrls,
+      videos: videoUrls,
+      likes: 0,
+      comments: []
+    };
+
+    setFeedPosts((prev) => [newPost, ...prev]);
+    setPostText("");
+    setPostImages([]);
+    setPostVideos([]);
+    setShowCreatePost(false);
   };
 
   return (
@@ -155,19 +198,125 @@ export default function CreatorGroupPage({ params }: CreatorGroupPageProps) {
         <div className="space-y-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-2xl font-semibold text-white">Group Feed</h2>
-            <button
-              type="button"
-              onClick={() => setShowRewards(true)}
-              className="rounded-2xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:border-white/60"
-            >
-              Rewards anzeigen
-            </button>
+            <div className="flex flex-wrap gap-3">
+              <button
+                type="button"
+                onClick={() => setShowCreatePost(true)}
+                className="rounded-full bg-gradient-to-r from-primary to-accent px-5 py-2 text-sm font-semibold text-white shadow-soft transition hover:brightness-110"
+              >
+                Neuen Post erstellen
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowRewards(true)}
+                className="rounded-2xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:border-white/60"
+              >
+                Rewards anzeigen
+              </button>
+            </div>
           </div>
-          <Feed posts={group.feed} />
+          <Feed posts={feedPosts} />
         </div>
       ) : (
         <div className="rounded-3xl border border-white/5 bg-black/30 p-8 text-center text-white/70">
           Tritt der Gruppe bei, um den geschlossenen Feed und Rewards zu sehen.
+        </div>
+      )}
+
+      {showCreatePost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
+          <div className="w-full max-w-2xl rounded-[32px] border border-white/10 bg-[#05050a] p-8 shadow-2xl">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.3em] text-white/60">Post erstellen</p>
+                <h3 className="text-2xl font-semibold text-white">Update mit der Gruppe teilen</h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreatePost(false);
+                  setPostText("");
+                  setPostImages([]);
+                  setPostVideos([]);
+                }}
+                className="rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:border-white/50"
+              >
+                Schließen
+              </button>
+            </div>
+            <div className="mt-6 space-y-5">
+              <label className="block text-sm text-white/70">
+                Post-Text
+                <textarea
+                  value={postText}
+                  onChange={(event) => setPostText(event.target.value)}
+                  placeholder="Was geht ab? Teile dein Update oder einen neuen Drop."
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-white placeholder:text-white/40 focus:border-white/40 focus:outline-none"
+                  rows={4}
+                />
+              </label>
+              <label className="block text-sm text-white/70">
+                Bilder hochladen
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={(event) => handleFileSelect(event.target.files, setPostImages)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-white file:mr-3 file:rounded-xl file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
+                />
+                {postImages.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-white/70">
+                    {postImages.map((file) => (
+                      <span key={file.name} className="rounded-full border border-white/10 px-3 py-1">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </label>
+              <label className="block text-sm text-white/70">
+                Videos hochladen
+                <input
+                  type="file"
+                  accept="video/*"
+                  multiple
+                  onChange={(event) => handleFileSelect(event.target.files, setPostVideos)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-sm text-white file:mr-3 file:rounded-xl file:border-0 file:bg-white file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black"
+                />
+                {postVideos.length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2 text-xs text-white/70">
+                    {postVideos.map((file) => (
+                      <span key={file.name} className="rounded-full border border-white/10 px-3 py-1">
+                        {file.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </label>
+            </div>
+            <div className="mt-6 flex flex-wrap justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreatePost(false);
+                  setPostText("");
+                  setPostImages([]);
+                  setPostVideos([]);
+                }}
+                className="rounded-2xl border border-white/30 px-5 py-2 text-sm font-semibold text-white hover:border-white/60"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                onClick={handleCreatePost}
+                disabled={!postText.trim()}
+                className="rounded-full bg-gradient-to-r from-primary to-accent px-6 py-2.5 text-sm font-semibold text-white shadow-soft transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Posten
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
