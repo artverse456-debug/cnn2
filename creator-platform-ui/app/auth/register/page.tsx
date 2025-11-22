@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useState } from "react";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { useAuthStore, type UserRole } from "@/store/useAuthStore";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function RegisterPage() {
   const [role, setRole] = useState("creator");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const initializeAuth = useAuthStore((state) => state.initialize);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -20,7 +22,11 @@ export default function RegisterPage() {
 
     try {
       await supabaseAuthClient.signUp(email, password, role);
-      router.push("/");
+      const selectedRole = role as UserRole;
+      const profile = await initializeAuth(undefined, selectedRole);
+      const nextRoute = (profile?.role ?? selectedRole) === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+
+      router.push(nextRoute);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registrierung fehlgeschlagen.";
       setError(message);

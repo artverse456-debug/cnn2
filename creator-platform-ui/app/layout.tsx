@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import "@/styles/globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
+import { AppProviders } from "@/components/AppProviders";
 
 export const metadata: Metadata = {
   title: "CreatorPulse · Next.js 14 Creator Platform",
@@ -15,9 +16,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="de">
       <body className="bg-[#05060a] text-white">
         <div className="min-h-screen">
-          <Navbar />
-          <main>{children}</main>
-          <Footer />
+          <AppProviders>
+            <Navbar />
+            <main>{children}</main>
+            <Footer />
+          </AppProviders>
         </div>
       </body>
     </html>
