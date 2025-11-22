@@ -13,6 +13,7 @@ export default function CreatorDashboard() {
   const router = useRouter();
   const role = useAuthStore((state) => state.role);
   const loading = useAuthStore((state) => state.loading);
+  const session = useAuthStore((state) => state.session);
   const [postTitle, setPostTitle] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postContent, setPostContent] = useState("");
@@ -64,10 +65,15 @@ export default function CreatorDashboard() {
 
   useEffect(() => {
     if (loading) return;
+    if (!session) {
+      router.replace("/auth/login");
+      return;
+    }
+
     if (role === "fan") {
       router.replace("/dashboard/fan");
     }
-  }, [loading, role, router]);
+  }, [loading, role, router, session]);
 
   if (loading) {
     return (

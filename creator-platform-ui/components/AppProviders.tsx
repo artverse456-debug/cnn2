@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -12,20 +13,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
     let isActive = true;
     let bootstrapping = true;
 
-    const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
+    const unsubscribe = supabaseAuthClient.onAuthStateChange(async (event: AuthChangeEvent, nextSession: Session | null) => {
       if (!isActive || bootstrapping) return;
 
       if (event === "SIGNED_OUT") {
-        initialize(null);
+        await initialize(null);
         return;
       }
 
-      initialize(nextSession ?? null);
+      await initialize(nextSession ?? null);
     });
 
     const bootstrap = async () => {
       const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      const existingSession = callbackSession ?? supabaseAuthClient.getSession();
+      const existingSession = callbackSession ?? (await supabaseAuthClient.getSession());
 
       if (!isActive) return;
 

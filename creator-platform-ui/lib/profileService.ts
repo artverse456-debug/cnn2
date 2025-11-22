@@ -1,8 +1,11 @@
 "use client";
 
-import { AuthSession, AuthUser, SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient";
+import type { Session, User } from "@supabase/supabase-js";
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./supabaseClient";
 
 export type UserRole = "creator" | "fan";
+
+const DEFAULT_AVATAR_URL: string | null = null;
 
 export type Profile = {
   id: string;
@@ -11,6 +14,7 @@ export type Profile = {
   avatar_url?: string | null;
   email?: string | null;
   points?: number | null;
+  created_at?: string | null;
 };
 
 export type ProfileUpdatePayload = {
@@ -18,8 +22,6 @@ export type ProfileUpdatePayload = {
   avatar_url?: string | null;
   role?: UserRole;
 };
-
-const DEFAULT_AVATAR_URL = "/logo.svg";
 
 function authHeaders(accessToken: string) {
   return {
@@ -44,11 +46,6 @@ async function requestProfile<T>(path: string, options: RequestInit): Promise<T>
   return (await response.json()) as T;
 }
 
-function usernameFromEmail(email?: string | null) {
-  if (!email) return null;
-  return email.split("@")[0] ?? null;
-}
-
 export async function fetchProfileById(accessToken: string, userId: string): Promise<Profile | null> {
   try {
     const data = await requestProfile<Profile[]>(`/rest/v1/profiles?select=*&id=eq.${userId}&limit=1`, {
@@ -63,58 +60,45 @@ export async function fetchProfileById(accessToken: string, userId: string): Pro
   }
 }
 
-export async function upsertProfile(
-  accessToken: string,
-  payload: {
-    user: AuthUser;
-    role: UserRole;
-    existingProfile?: Profile | null;
-  }
-): Promise<Profile | null> {
-  if (!payload.user?.id) return null;
-
-  const username = payload.existingProfile?.username ?? usernameFromEmail(payload.user.email);
-  const avatar_url = payload.existingProfile?.avatar_url ?? DEFAULT_AVATAR_URL;
+export async function createProfile(accessToken: string, user: User, role: UserRole): Promise<Profile | null> {
+  if (!user.id) return null;
 
   try {
     const data = await requestProfile<Profile[]>(`/rest/v1/profiles`, {
       method: "POST",
       headers: {
         ...authHeaders(accessToken),
-        Prefer: "return=representation,resolution=merge-duplicates",
+        Prefer: "return=representation",
       },
       body: JSON.stringify({
-        id: payload.user.id,
-        role: payload.role,
-        email: payload.user.email ?? payload.existingProfile?.email ?? null,
-        username,
-        avatar_url,
-        points: payload.existingProfile?.points ?? 0,
+        id: user.id,
+        role,
+        email: user.email ?? null,
+        username: "",
+        avatar_url: null,
+        points: 0,
+        created_at: new Date().toISOString(),
       }),
     });
 
     return data?.[0] ?? null;
   } catch (error) {
-    console.error("Failed to upsert profile", error);
+    console.error("Failed to create profile", error);
     return null;
   }
 }
 
-export async function ensureProfile(session: AuthSession, preferredRole?: UserRole): Promise<Profile | null> {
+export async function ensureProfile(session: Session, preferredRole?: UserRole): Promise<Profile | null> {
   const user = session.user;
   if (!user?.id) return null;
 
   const existingProfile = await fetchProfileById(session.access_token, user.id);
+  if (existingProfile) return existingProfile;
+
   const metaRole = user.user_metadata?.role as UserRole | undefined;
-  const fallbackRole = preferredRole ?? existingProfile?.role ?? metaRole ?? "fan";
+  const fallbackRole = preferredRole ?? metaRole ?? "fan";
 
-  const profile = await upsertProfile(session.access_token, {
-    user,
-    role: fallbackRole,
-    existingProfile,
-  });
-
-  return profile ?? existingProfile ?? null;
+  return createProfile(session.access_token, user, fallbackRole);
 }
 
 export async function updateProfile(
@@ -137,6 +121,11 @@ export async function updateProfile(
     console.error("Failed to update profile", error);
     return null;
   }
+}
+
+function usernameFromEmail(email?: string | null) {
+  if (!email) return null;
+  return email.split("@")[0] ?? null;
 }
 
 export { usernameFromEmail, DEFAULT_AVATAR_URL };
