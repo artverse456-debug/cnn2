@@ -1,16 +1,18 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import { useRouter } from "next/navigation";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function AuthCallbackPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const initializeAuth = useAuthStore((state) => state.initialize);
   const profile = useAuthStore((state) => state.profile);
   const session = useAuthStore((state) => state.session);
   const loading = useAuthStore((state) => state.loading);
+  const [error, setError] = useState<string | null>(null);
 
   const nextRoute = useMemo(() => {
     if (!profile) return null;
@@ -19,22 +21,45 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const processCallback = async () => {
-      const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      await initializeAuth(callbackSession ?? undefined);
+      const supabase = getSupabaseBrowserClient();
+      const code = searchParams.get("code");
+      const { data, error } = code
+        ? await supabase.auth.exchangeCodeForSession(code)
+        : await supabase.auth.getSessionFromUrl();
+
+      if (error) {
+        setError(error.message);
+        return;
+      }
+
+      const callbackSession = data.session;
+      if (!callbackSession) {
+        setError("Session konnte nicht erstellt werden.");
+        return;
+      }
+
+      const nextProfile = await initializeAuth(callbackSession ?? undefined);
+      if (!nextProfile) {
+        setError("Profil konnte nicht geladen werden.");
+        return;
+      }
+
+      const redirect = nextProfile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+      router.replace(redirect);
     };
 
     processCallback();
-  }, [initializeAuth]);
+  }, [initializeAuth, router, searchParams]);
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || error) return;
 
     if (session && nextRoute) {
       router.replace(nextRoute);
     } else if (!session && !loading) {
       router.replace("/auth/login");
     }
-  }, [loading, nextRoute, router, session]);
+  }, [loading, nextRoute, router, session, error]);
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6 px-4 py-16">
@@ -42,6 +67,7 @@ export default function AuthCallbackPage() {
       <p className="text-sm text-white/70">
         Wir bestätigen deine Anmeldung. Du wirst automatisch weitergeleitet, sobald dein Login abgeschlossen ist.
       </p>
+      {error ? <p className="text-xs text-red-400">{error}</p> : null}
     </div>
   );
 }

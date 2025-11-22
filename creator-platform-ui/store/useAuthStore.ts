@@ -1,21 +1,15 @@
 import { create } from "zustand";
-import { supabaseAuthClient, type AuthSession } from "@/lib/supabaseClient";
-import {
-  DEFAULT_AVATAR_URL,
-  ensureProfile,
-  type Profile,
-  type ProfileUpdatePayload,
-  type UserRole,
-  updateProfile,
-} from "@/lib/profileService";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
+import { ensureProfile, type Profile, type ProfileUpdatePayload, type UserRole, updateProfile } from "@/lib/profileService";
+import type { Session } from "@supabase/supabase-js";
 
 type AuthState = {
-  session: AuthSession | null;
+  session: Session | null;
   profile: Profile | null;
   role: UserRole | null;
   loading: boolean;
   error: string | null;
-  initialize: (sessionOverride?: AuthSession | null, preferredRole?: UserRole) => Promise<Profile | null>;
+  initialize: (sessionOverride?: Session | null, preferredRole?: UserRole) => Promise<Profile | null>;
   clear: () => void;
   setRole: (role: UserRole) => Promise<Profile | null>;
   updateProfile: (updates: ProfileUpdatePayload) => Promise<Profile | null>;
@@ -33,7 +27,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const supabase = getSupabaseBrowserClient();
+    const session =
+      sessionOverride ?? (await supabase.auth.getSession().then(({ data }) => data.session ?? null));
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });
@@ -41,13 +37,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
 
     try {
-      const profile = await ensureProfile(session, preferredRole);
+      const profile = await ensureProfile(supabase, session, preferredRole);
       set({
         session,
         profile,
         role: profile?.role ?? null,
         loading: false,
-        error: profile ? null : "Profil konnte nicht geladen werden",
+        error: profile ? null : "Profil konnte nicht geladen werden"
       });
       return profile;
     } catch (error) {
@@ -60,7 +56,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, { role });
+    const supabase = getSupabaseBrowserClient();
+    const updatedProfile = await updateProfile(supabase, state.session.user.id, { role });
     set({ profile: updatedProfile, role: updatedProfile?.role ?? role });
     return updatedProfile;
   },
@@ -68,18 +65,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, updates);
+    const supabase = getSupabaseBrowserClient();
+    const updatedProfile = await updateProfile(supabase, state.session.user.id, updates);
     if (updatedProfile) {
       set({
-        profile: { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL },
-        role: updatedProfile.role ?? state.role,
+        profile: updatedProfile,
+        role: updatedProfile.role ?? state.role
       });
     }
 
     return updatedProfile;
   },
   isCreator: () => get().role === "creator",
-  isFan: () => get().role === "fan",
+  isFan: () => get().role === "fan"
 }));
 
 export type { UserRole, Profile };

@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { AppProviders } from "@/components/AppProviders";
+import { createSupabaseServerClient } from "@/lib/supabase/serverClient";
 
 export const metadata: Metadata = {
   title: "CreatorPulse · Next.js 14 Creator Platform",
@@ -11,12 +12,17 @@ export const metadata: Metadata = {
   icons: [{ rel: "icon", url: "/logo.svg" }]
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const supabase = createSupabaseServerClient();
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
   return (
     <html lang="de">
       <body className="bg-[#05060a] text-white">
         <div className="min-h-screen">
-          <AppProviders>
+          <AppProviders initialSession={session ?? null}>
             <Navbar />
             <main>{children}</main>
             <Footer />
