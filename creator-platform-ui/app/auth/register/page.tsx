@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function RegisterPage() {
@@ -32,8 +32,21 @@ export default function RegisterPage() {
     setSuccess(null);
 
     try {
-      await supabaseAuthClient.signUp(email, password, role);
-      setSuccess("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
+      const supabase = getSupabaseBrowserClient();
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { role },
+          emailRedirectTo: "https://cnn2-eta.vercel.app/auth/confirm"
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setSuccess("Bitte bestätige deine E-Mail. Wir haben dir einen Bestätigungslink geschickt.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registrierung fehlgeschlagen.";
       setError(message);

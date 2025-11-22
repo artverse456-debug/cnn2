@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { useMemo, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { BrandLogo } from "./BrandLogo";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useMemo, useState } from "react";
 
 type UserRole = "creator" | "fan" | null;
 
@@ -39,7 +39,8 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await supabaseAuthClient.signOut();
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
       clearAuth();
       setShowDropdown(false);
     } catch (error) {
@@ -77,11 +78,11 @@ export function Navbar() {
               {showDropdown ? (
                 <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/10 bg-[#0b0c13] p-2 text-sm shadow-2xl">
                   <Link
-                    href="/dashboard/creator"
+                    href={profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan"}
                     className="block rounded-xl px-3 py-2 text-white/80 hover:bg-white/5"
                     onClick={() => setShowDropdown(false)}
                   >
-                    Profil
+                    Dashboard
                   </Link>
                   <Link
                     href="/settings"

@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { useSearchParams } from "next/navigation";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
@@ -11,11 +12,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initializeAuth = useAuthStore((state) => state.initialize);
   const profile = useAuthStore((state) => state.profile);
   const session = useAuthStore((state) => state.session);
   const loading = useAuthStore((state) => state.loading);
+  const searchParams = useSearchParams();
 
   useEffect(() => {
     if (loading || !session || !profile) return;
@@ -24,15 +27,36 @@ export default function LoginPage() {
     router.replace(nextRoute);
   }, [loading, profile, router, session]);
 
+  useEffect(() => {
+    const confirmed = searchParams.get("confirmed");
+    if (confirmed) {
+      setInfo("E-Mail bestätigt. Du kannst dich jetzt einloggen.");
+    }
+  }, [searchParams]);
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
 
     try {
-      const result = await supabaseAuthClient.signIn(email, password);
-      const nextProfile = await initializeAuth(result.session ?? undefined);
-      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
+      const supabase = getSupabaseBrowserClient();
+      const result = await supabase.auth.signInWithPassword({ email, password });
+
+      if (result.error) {
+        throw result.error;
+      }
+
+      const session = result.data.session;
+
+      if (!session?.user.email_confirmed_at && !session?.user.confirmed_at) {
+        await supabase.auth.signOut();
+        throw new Error("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
+      }
+
+      const nextProfile = await initializeAuth(session ?? undefined);
+      const preferredRole =
+        nextProfile?.role ?? (session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
       const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
 
       router.push(nextRoute);
@@ -78,6 +102,7 @@ export default function LoginPage() {
         >
           {isSubmitting ? "Login läuft..." : "Login"}
         </button>
+        {info ? <p className="text-xs text-emerald-400">{info}</p> : null}
         {error ? <p className="text-xs text-red-400">{error}</p> : null}
       </form>
       <p className="text-xs text-white/60">
