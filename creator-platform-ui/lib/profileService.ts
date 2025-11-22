@@ -81,7 +81,7 @@ export async function upsertProfile(
       method: "POST",
       headers: {
         ...authHeaders(accessToken),
-        Prefer: "return=representation",
+        Prefer: "return=representation,resolution=merge-duplicates",
       },
       body: JSON.stringify({
         id: payload.user.id,

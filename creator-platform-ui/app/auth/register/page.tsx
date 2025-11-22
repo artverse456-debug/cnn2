@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
-import { useAuthStore, type UserRole } from "@/store/useAuthStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -13,20 +13,27 @@ export default function RegisterPage() {
   const [role, setRole] = useState("creator");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const initializeAuth = useAuthStore((state) => state.initialize);
+  const [success, setSuccess] = useState<string | null>(null);
+  const profile = useAuthStore((state) => state.profile);
+  const session = useAuthStore((state) => state.session);
+  const loading = useAuthStore((state) => state.loading);
+
+  useEffect(() => {
+    if (loading || !session || !profile) return;
+
+    const nextRoute = profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+    router.replace(nextRoute);
+  }, [loading, profile, router, session]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
+    setSuccess(null);
 
     try {
       await supabaseAuthClient.signUp(email, password, role);
-      const selectedRole = role as UserRole;
-      const profile = await initializeAuth(undefined, selectedRole);
-      const nextRoute = (profile?.role ?? selectedRole) === "creator" ? "/dashboard/creator" : "/dashboard/fan";
-
-      router.push(nextRoute);
+      setSuccess("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registrierung fehlgeschlagen.";
       setError(message);
@@ -84,6 +91,7 @@ export default function RegisterPage() {
         >
           {isSubmitting ? "Account wird angelegt..." : "Account anlegen"}
         </button>
+        {success ? <p className="text-xs text-emerald-400">{success}</p> : null}
         {error ? <p className="text-xs text-red-400">{error}</p> : null}
       </form>
       <p className="text-xs text-white/60">

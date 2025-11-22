@@ -20,6 +20,7 @@ const AUTH_STORAGE_KEY = PROJECT_REF ? `sb-${PROJECT_REF}-auth-token` : "supabas
 export type AuthUser = {
   id?: string;
   email?: string;
+  email_confirmed_at?: string | null;
   user_metadata?: Record<string, unknown>;
 };
 
@@ -42,7 +43,9 @@ export type UserResponse = {
   error: Error | null;
 };
 
-type AuthChangeCallback = (session: AuthSession | null) => void;
+export type AuthChangeEvent = "SIGNED_IN" | "SIGNED_OUT" | "TOKEN_REFRESHED" | "USER_UPDATED";
+
+type AuthChangeCallback = (event: AuthChangeEvent, session: AuthSession | null) => void;
 
 function isBrowser() {
   return typeof window !== "undefined";
@@ -55,7 +58,7 @@ function calculateExpiresAt(session: AuthSession | null) {
   return null;
 }
 
-function persistSession(session: AuthSession | null) {
+function persistSession(session: AuthSession | null, event: AuthChangeEvent = "USER_UPDATED") {
   if (!isBrowser()) return;
 
   if (session) {
@@ -66,10 +69,10 @@ function persistSession(session: AuthSession | null) {
     localStorage.removeItem(AUTH_STORAGE_KEY);
   }
 
-  const event = new CustomEvent<AuthSession | null>("supabase-auth-changed", {
-    detail: session
+  const authEvent = new CustomEvent<{ session: AuthSession | null; event: AuthChangeEvent }>("supabase-auth-changed", {
+    detail: { session, event }
   });
-  window.dispatchEvent(event);
+  window.dispatchEvent(authEvent);
 }
 
 function getStoredSession(): AuthSession | null {
@@ -110,6 +113,66 @@ async function request<T>(path: string, options: RequestInit): Promise<T> {
   return JSON.parse(text) as T;
 }
 
+function getRedirectUrl(path: string) {
+  if (!isBrowser()) return null;
+
+  try {
+    const url = new URL(path, window.location.origin);
+    return url.toString();
+  } catch (error) {
+    console.error("Invalid redirect URL", error);
+    return null;
+  }
+}
+
+async function fetchUserByAccessToken(accessToken: string): Promise<AuthUser | null> {
+  try {
+    const user = await request<AuthUser>(`/auth/v1/user`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+
+    return user ?? null;
+  } catch (error) {
+    console.error("Failed to fetch Supabase user", error);
+    return null;
+  }
+}
+
+function extractSessionFromUrl(urlString: string): {
+  access_token?: string | null;
+  refresh_token?: string | null;
+  expires_in?: number;
+  token_type?: string | null;
+} {
+  const url = new URL(urlString);
+  const hashParams = new URLSearchParams(url.hash.replace(/^#/, ""));
+  const searchParams = url.searchParams;
+  const params = hashParams.get("access_token") ? hashParams : searchParams;
+
+  const access_token = params.get("access_token");
+  const refresh_token = params.get("refresh_token");
+  const expires_in = params.get("expires_in");
+  const token_type = params.get("token_type");
+
+  return {
+    access_token,
+    refresh_token,
+    expires_in: expires_in ? Number(expires_in) : undefined,
+    token_type
+  };
+}
+
+function cleanAuthParams(urlString: string) {
+  const url = new URL(urlString);
+  url.hash = "";
+  const paramsToDelete = ["access_token", "refresh_token", "expires_in", "token_type", "type"]; 
+  paramsToDelete.forEach((param) => url.searchParams.delete(param));
+  window.history.replaceState({}, document.title, url.toString());
+}
+
 export const supabaseAuthClient = {
   getSession(): AuthSession | null {
     return getStoredSession();
@@ -118,8 +181,8 @@ export const supabaseAuthClient = {
     if (!isBrowser()) return () => undefined;
 
     const handler = (event: Event) => {
-      const customEvent = event as CustomEvent<AuthSession | null>;
-      callback(customEvent.detail ?? null);
+      const customEvent = event as CustomEvent<{ session: AuthSession | null; event: AuthChangeEvent }>;
+      callback(customEvent.detail?.event ?? "USER_UPDATED", customEvent.detail?.session ?? null);
     };
 
     window.addEventListener("supabase-auth-changed", handler);
@@ -127,15 +190,13 @@ export const supabaseAuthClient = {
     return () => window.removeEventListener("supabase-auth-changed", handler);
   },
   async signUp(email: string, password: string, role: string): Promise<AuthResponse> {
-    const result = await request<AuthResponse>(`/auth/v1/signup`, {
+    const redirectTo = getRedirectUrl("/auth/callback");
+    const result = await request<AuthResponse>(`/auth/v1/signup${redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ""}`, {
       method: "POST",
       body: JSON.stringify({ email, password, data: { role } })
     });
 
-    if (result.session) {
-      persistSession(result.session);
-    }
-
+    // Session should not be persisted here to avoid auto-login before email confirmation
     return result;
   },
   async signIn(email: string, password: string): Promise<AuthResponse> {
@@ -145,7 +206,15 @@ export const supabaseAuthClient = {
     });
 
     if (result.session) {
-      persistSession(result.session);
+      const user = result.session.user as (AuthUser & { confirmed_at?: string | null }) | undefined;
+      const emailConfirmed = user?.email_confirmed_at ?? user?.confirmed_at;
+
+      if (!emailConfirmed) {
+        persistSession(null, "SIGNED_OUT");
+        throw new Error("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
+      }
+
+      persistSession(result.session, "SIGNED_IN");
     }
 
     return result;
@@ -153,7 +222,7 @@ export const supabaseAuthClient = {
   async signOut() {
     const session = getStoredSession();
     if (!session) {
-      persistSession(null);
+      persistSession(null, "SIGNED_OUT");
       return;
     }
 
@@ -164,7 +233,28 @@ export const supabaseAuthClient = {
       }
     });
 
-    persistSession(null);
+    persistSession(null, "SIGNED_OUT");
+  },
+  async handleAuthCallbackFromUrl(): Promise<AuthSession | null> {
+    if (!isBrowser()) return null;
+
+    const { access_token, refresh_token, expires_in, token_type } = extractSessionFromUrl(window.location.href);
+
+    if (!access_token || !refresh_token) return null;
+
+    const user = await fetchUserByAccessToken(access_token);
+    const session: AuthSession = {
+      access_token,
+      refresh_token,
+      expires_in,
+      token_type: token_type ?? "bearer",
+      user: user ?? {}
+    };
+
+    persistSession(session, "SIGNED_IN");
+    cleanAuthParams(window.location.href);
+
+    return session;
   },
   async getUser(): Promise<UserResponse> {
     const session = getStoredSession();
@@ -190,5 +280,5 @@ export const supabaseAuthClient = {
 };
 
 export function clearStoredSession() {
-  persistSession(null);
+  persistSession(null, "SIGNED_OUT");
 }
