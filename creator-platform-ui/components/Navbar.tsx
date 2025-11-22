@@ -1,19 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
-import { BrandLogo } from "./BrandLogo";
-import { useAuthStore } from "@/store/useAuthStore";
 import { useMemo, useState } from "react";
+import { BrandLogo } from "./BrandLogo";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type UserRole = "creator" | "fan" | null;
 
-const links = [
+const creatorLinks = [
   { href: "/explore", label: "Explore" },
-  { href: "/dashboard/creator", label: "Creator Hub" },
-  { href: "/dashboard/fan", label: "Fan Hub" },
   { href: "/payments", label: "Payments" },
-  { href: "/settings", label: "Settings" }
+  { href: "/settings", label: "Settings" },
+  { href: "/dashboard/creator", label: "Creator Hub" }
+];
+
+const fanLinks = [
+  { href: "/explore", label: "Explore" },
+  { href: "/payments", label: "Payments" },
+  { href: "/settings", label: "Settings" },
+  { href: "/dashboard/fan", label: "Fan Hub" }
 ];
 
 export function Navbar() {
@@ -22,8 +28,6 @@ export function Navbar() {
   const loading = useAuthStore((state) => state.loading);
   const session = useAuthStore((state) => state.session);
   const clearAuth = useAuthStore((state) => state.clear);
-  const isCreator = useAuthStore((state) => state.isCreator);
-  const isFan = useAuthStore((state) => state.isFan);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const avatarUrl = useMemo(() => {
@@ -31,15 +35,16 @@ export function Navbar() {
     return "/logo.svg";
   }, [profile?.avatar_url]);
 
-  const filteredLinks = links.filter((link) => {
-    if (link.label === "Creator Hub") return isCreator();
-    if (link.label === "Fan Hub") return isFan();
-    return !loading;
-  });
+  const filteredLinks = useMemo(() => {
+    if (role === "creator") return creatorLinks;
+    if (role === "fan") return fanLinks;
+    return [];
+  }, [role]);
 
   const handleLogout = async () => {
     try {
-      await supabaseAuthClient.signOut();
+      const supabase = getSupabaseBrowserClient();
+      await supabase.auth.signOut();
       clearAuth();
       setShowDropdown(false);
     } catch (error) {
@@ -66,8 +71,12 @@ export function Navbar() {
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white"
               >
-                <span className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-black/40">
-                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                <span className="flex h-8 w-8 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-black/40 text-xs font-semibold uppercase">
+                  {profile?.avatar_url ? (
+                    <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                  ) : (
+                    (profile?.username ?? profile?.email ?? "").slice(0, 2).toUpperCase()
+                  )}
                 </span>
                 <div className="flex flex-col text-left">
                   <span className="text-xs uppercase tracking-[0.2em] text-white/50">{role}</span>

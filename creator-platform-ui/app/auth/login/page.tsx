@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginPage() {
@@ -30,10 +30,28 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await supabaseAuthClient.signIn(email, password);
-      const nextProfile = await initializeAuth(result.session ?? undefined);
-      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
-      const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+      const supabase = getSupabaseBrowserClient();
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+      if (error) throw error;
+
+      const session = data.session;
+      if (!session) {
+        throw new Error("Login fehlgeschlagen.");
+      }
+
+      const confirmedAt = session.user.email_confirmed_at ?? (session.user as { confirmed_at?: string | null }).confirmed_at;
+      if (!confirmedAt) {
+        await supabase.auth.signOut();
+        throw new Error("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
+      }
+
+      const nextProfile = await initializeAuth(session ?? undefined);
+      if (!nextProfile) {
+        throw new Error("Profil konnte nicht geladen werden.");
+      }
+
+      const nextRoute = nextProfile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
 
       router.push(nextRoute);
     } catch (err) {

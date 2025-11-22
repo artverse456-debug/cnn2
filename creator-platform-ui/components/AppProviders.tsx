@@ -2,44 +2,35 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import { useAuthStore } from "@/store/useAuthStore";
+import type { Session } from "@supabase/supabase-js";
 
-export function AppProviders({ children }: { children: ReactNode }) {
+export function AppProviders({ children, initialSession }: { children: ReactNode; initialSession: Session | null }) {
   const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    let isActive = true;
-    let bootstrapping = true;
+    let active = true;
+    const supabase = getSupabaseBrowserClient();
 
-    const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
-      if (!isActive || bootstrapping) return;
+    initialize(initialSession ?? null);
+
+    const { data: listener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!active) return;
 
       if (event === "SIGNED_OUT") {
         initialize(null);
         return;
       }
 
-      initialize(nextSession ?? null);
+      initialize(session ?? null);
     });
 
-    const bootstrap = async () => {
-      const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      const existingSession = callbackSession ?? supabaseAuthClient.getSession();
-
-      if (!isActive) return;
-
-      await initialize(existingSession ?? null);
-      bootstrapping = false;
-    };
-
-    bootstrap();
-
     return () => {
-      isActive = false;
-      unsubscribe?.();
+      active = false;
+      listener.subscription.unsubscribe();
     };
-  }, [initialize]);
+  }, [initialize, initialSession]);
 
   return <>{children}</>;
 }
