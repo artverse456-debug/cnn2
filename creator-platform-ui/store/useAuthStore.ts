@@ -1,6 +1,13 @@
 import { create } from "zustand";
 import { supabaseAuthClient, type AuthSession } from "@/lib/supabaseClient";
-import { ensureProfile, type Profile, type UserRole, updateProfileRole } from "@/lib/profileService";
+import {
+  DEFAULT_AVATAR_URL,
+  ensureProfile,
+  type Profile,
+  type ProfileUpdatePayload,
+  type UserRole,
+  updateProfile,
+} from "@/lib/profileService";
 
 type AuthState = {
   session: AuthSession | null;
@@ -11,6 +18,9 @@ type AuthState = {
   initialize: (sessionOverride?: AuthSession | null, preferredRole?: UserRole) => Promise<Profile | null>;
   clear: () => void;
   setRole: (role: UserRole) => Promise<Profile | null>;
+  updateProfile: (updates: ProfileUpdatePayload) => Promise<Profile | null>;
+  isCreator: () => boolean;
+  isFan: () => boolean;
 };
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -50,15 +60,26 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    try {
-      const updatedProfile = await updateProfileRole(state.session.access_token, state.session.user.id, role);
-      set({ profile: updatedProfile, role: updatedProfile?.role ?? role });
-      return updatedProfile;
-    } catch (error) {
-      console.error("Failed to update user role", error);
-      return null;
-    }
+    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, { role });
+    set({ profile: updatedProfile, role: updatedProfile?.role ?? role });
+    return updatedProfile;
   },
+  updateProfile: async (updates) => {
+    const state = get();
+    if (!state.session?.user?.id) return null;
+
+    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, updates);
+    if (updatedProfile) {
+      set({
+        profile: { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL },
+        role: updatedProfile.role ?? state.role,
+      });
+    }
+
+    return updatedProfile;
+  },
+  isCreator: () => get().role === "creator",
+  isFan: () => get().role === "fan",
 }));
 
 export type { UserRole, Profile };

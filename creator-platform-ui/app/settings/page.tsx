@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -51,17 +51,30 @@ export default function SettingsPage() {
   const [emailConfirmations, setEmailConfirmations] = useState(true);
 
   const role = useAuthStore((state) => state.role);
+  const profile = useAuthStore((state) => state.profile);
   const loading = useAuthStore((state) => state.loading);
   const session = useAuthStore((state) => state.session);
   const clearAuth = useAuthStore((state) => state.clear);
   const setRole = useAuthStore((state) => state.setRole);
+  const updateProfile = useAuthStore((state) => state.updateProfile);
   const initializeAuth = useAuthStore((state) => state.initialize);
 
+  const [username, setUsername] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [profileMessage, setProfileMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (profile) {
+      setUsername(profile.username ?? "");
+      setAvatarUrl(profile.avatar_url ?? "");
+    }
+  }, [profile]);
+
   const roleLabel = useMemo(() => {
-    if (role === "creator") return "Creator";
-    if (role === "fan") return "Fan";
+    if (profile?.role === "creator" || role === "creator") return "Creator";
+    if (profile?.role === "fan" || role === "fan") return "Fan";
     return "Unbekannt";
-  }, [role]);
+  }, [profile?.role, role]);
 
   const Toggle = ({ checked, onChange }: { checked: boolean; onChange: () => void }) => (
     <button
@@ -91,6 +104,24 @@ export default function SettingsPage() {
     }
   };
 
+  const handleUsernameSave = async () => {
+    if (!session?.user?.id || !username.trim()) return;
+
+    const nextProfile = await updateProfile({ username: username.trim() });
+    setProfileMessage(nextProfile ? "Profil aktualisiert." : "Profil konnte nicht gespeichert werden.");
+  };
+
+  const handleAvatarChange = async () => {
+    if (!session?.user?.id) return;
+
+    const nextUrl = window.prompt("Neuen Avatar-URL eingeben", avatarUrl || "https://");
+    if (!nextUrl) return;
+
+    setAvatarUrl(nextUrl);
+    const nextProfile = await updateProfile({ avatar_url: nextUrl });
+    setProfileMessage(nextProfile ? "Avatar aktualisiert." : "Avatar konnte nicht gespeichert werden.");
+  };
+
   if (loading) {
     return (
       <div className="mx-auto max-w-4xl px-4 py-12 text-white/70">
@@ -117,18 +148,31 @@ export default function SettingsPage() {
             <h2 className="text-2xl font-semibold text-white">Profil</h2>
             <p className="text-sm text-white/60">Anzeigename, E-Mail und Avatar verwalten.</p>
           </div>
-          <button className="rounded-full border border-white/20 px-4 py-2 text-sm text-white">Avatar ändern</button>
+          <button
+            className="rounded-full border border-white/20 px-4 py-2 text-sm text-white"
+            onClick={handleAvatarChange}
+            type="button"
+          >
+            Avatar ändern
+          </button>
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-white/70">
             Anzeigename
-            <input className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3" defaultValue="CreatorPulse" />
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3"
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              onBlur={handleUsernameSave}
+              placeholder="Dein Anzeigename"
+            />
           </label>
           <label className="text-sm text-white/70">
             E-Mail
             <input
               className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3"
-              defaultValue="contact@creatorpulse.app"
+              value={session?.user?.email ?? ""}
+              readOnly
             />
           </label>
         </div>
@@ -136,6 +180,7 @@ export default function SettingsPage() {
           <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1">Rolle</span>
           <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1">{roleLabel}</span>
         </div>
+        {profileMessage ? <p className="text-xs text-white/60">{profileMessage}</p> : null}
       </section>
 
       {role === "creator" ? (
@@ -241,7 +286,7 @@ export default function SettingsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4 text-white">
                 <p className="text-xs uppercase tracking-[0.2em] text-white/70">Punktestand</p>
-                <p className="mt-3 text-4xl font-semibold">{fanPoints} Punkte</p>
+                <p className="mt-3 text-4xl font-semibold">{profile?.points ?? fanPoints} Punkte</p>
                 <p className="mt-2 text-sm text-white/70">Basierend auf Challenges, Gruppen und Rewards.</p>
               </div>
               <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
