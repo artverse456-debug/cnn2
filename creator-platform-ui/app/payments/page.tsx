@@ -14,23 +14,6 @@ export default function PaymentsPage() {
           </div>
         ))}
       </div>
-      <div className="rounded-3xl border border-white/5 bg-white/5 p-6">
-        <h2 className="text-2xl font-semibold text-white">Auszahlungsplan</h2>
-        <div className="mt-4 grid gap-4 md:grid-cols-2">
-          <label className="text-sm text-white/70">
-            Mindestbetrag
-            <input className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3" placeholder="€ 500" />
-          </label>
-          <label className="text-sm text-white/70">
-            Zyklus
-            <select className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3">
-              <option className="bg-black">Wöchentlich</option>
-              <option className="bg-black">Monatlich</option>
-              <option className="bg-black">Sofort</option>
-            </select>
-          </label>
-        </div>
-      </div>
     </div>
   );
 }
