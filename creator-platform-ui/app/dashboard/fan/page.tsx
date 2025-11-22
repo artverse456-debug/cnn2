@@ -29,7 +29,7 @@ export default function FanDashboard() {
   useEffect(() => {
     if (loading) return;
     if (role === "creator") {
-      router.replace("/dashboard/creator");
+      router.replace("/creator-hub");
     }
   }, [loading, role, router]);
 

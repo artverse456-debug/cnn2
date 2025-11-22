@@ -13,7 +13,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl space-y-6 px-4">
         <SectionHeader
           title="CreatorPulse Radar"
-          description="Live-Überblick über Rewards, Gruppenaktivität und verteilte Fanpunkte in CreatorPulse."
+          description="Live-Überblick über Creator-Fanclubs, freemium & paid Mitgliedschaften sowie verteilte Punkte und Rewards."
           action={<Link href="/explore" className="text-primary-light">Alle Gruppen & Creator ansehen</Link>}
         />
         <div className="grid gap-6 md:grid-cols-3">
@@ -25,7 +25,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl space-y-6 px-4">
         <SectionHeader
           title="Beliebte Gruppen & Creator"
-          description="Fanclubs mit Punkten, Reward-Drops und Abo-Boosts – die aktivsten Gruppen des Monats."
+          description="Fanclubs, die Paid-Mitglieder monatlich mit Punkten versorgen und Engagement für Creator-Rewards belohnen."
         />
         <div className="grid gap-6 md:grid-cols-3">
           {popularGroups.map((group) => (
@@ -36,7 +36,7 @@ export default function LandingPage() {
       <section className="mx-auto max-w-6xl space-y-6 px-4 pb-16">
         <SectionHeader
           title="Neueste Aktivitäten und Fan-Möglichkeiten"
-          description="Aktivitäten, die Fans sofort Punkte, neue Rewards oder automatische Boosts bringen."
+          description="Drops und Aktionen, bei denen Fans Punkte sammeln und gegen Merch, Shoutouts oder andere Creator-Perks einlösen."
         />
         <div className="grid gap-6 md:grid-cols-3">
           {featuredChallenges.map((challenge) => (
