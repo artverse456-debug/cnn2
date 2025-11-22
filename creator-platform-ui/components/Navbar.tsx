@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { BrandLogo } from "./BrandLogo";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type UserRole = "creator" | "fan" | null;
 
@@ -16,52 +16,21 @@ const links = [
 ];
 
 export function Navbar() {
-  const [role, setRole] = useState<UserRole>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    const session = supabaseAuthClient.getSession();
-    const storedRole = (session?.user?.user_metadata?.role as UserRole) ?? null;
-
-    setRole(storedRole);
-    setIsAuthenticated(!!session);
-
-    let isMounted = true;
-
-    const fetchUser = async () => {
-      const { data } = await supabaseAuthClient.getUser();
-      if (!isMounted) return;
-
-      const userRole = (data.user?.user_metadata?.role as UserRole) ?? null;
-      setRole(userRole);
-      setIsAuthenticated(!!data.user);
-    };
-
-    fetchUser();
-
-    const unsubscribe = supabaseAuthClient.onAuthStateChange((updatedSession) => {
-      const nextRole = (updatedSession?.user?.user_metadata?.role as UserRole) ?? null;
-      setRole(nextRole);
-      setIsAuthenticated(!!updatedSession);
-    });
-
-    return () => {
-      isMounted = false;
-      unsubscribe();
-    };
-  }, []);
+  const role = useAuthStore((state) => state.role);
+  const loading = useAuthStore((state) => state.loading);
+  const session = useAuthStore((state) => state.session);
+  const clearAuth = useAuthStore((state) => state.clear);
 
   const filteredLinks = links.filter((link) => {
-    if (role === "creator" && link.label === "Fan Hub") return false;
-    if (role === "fan" && link.label === "Creator Hub") return false;
-    return true;
+    if (link.label === "Creator Hub") return role === "creator";
+    if (link.label === "Fan Hub") return role === "fan";
+    return !loading;
   });
 
   const handleLogout = async () => {
     try {
       await supabaseAuthClient.signOut();
-      setRole(null);
-      setIsAuthenticated(false);
+      clearAuth();
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -72,14 +41,15 @@ export function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <BrandLogo />
         <nav className="hidden gap-6 text-sm text-white/80 md:flex">
-          {filteredLinks.map((link) => (
-            <Link key={link.href} href={link.href} className="hover:text-white transition">
-              {link.label}
-            </Link>
-          ))}
+          {!loading &&
+            filteredLinks.map((link) => (
+              <Link key={link.href} href={link.href} className="hover:text-white transition">
+                {link.label}
+              </Link>
+            ))}
         </nav>
         <div className="flex items-center gap-3">
-          {isAuthenticated ? (
+          {session ? (
             <button
               onClick={handleLogout}
               className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"

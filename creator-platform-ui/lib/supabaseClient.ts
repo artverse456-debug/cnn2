@@ -1,8 +1,8 @@
 "use client";
 
-const SUPABASE_URL =
+export const SUPABASE_URL =
   process.env.NEXT_PUBLIC_SUPABASE_URL ?? "https://atswonwcyqikechcirwk.supabase.co";
-const SUPABASE_ANON_KEY =
+export const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "sb_publishable_YlyeI_BPAKLWtXOjd_j7ow_7ImnTFL0";
 
 function getProjectRef() {
@@ -18,6 +18,8 @@ const PROJECT_REF = getProjectRef();
 const AUTH_STORAGE_KEY = PROJECT_REF ? `sb-${PROJECT_REF}-auth-token` : "supabase-auth-token";
 
 export type AuthUser = {
+  id?: string;
+  email?: string;
   user_metadata?: Record<string, unknown>;
 };
 
