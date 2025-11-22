@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useEffect } from "react";
+import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -12,7 +13,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     let isActive = true;
     let bootstrapping = true;
 
-    const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
+    const unsubscribe = supabaseAuthClient.onAuthStateChange((event: AuthChangeEvent, nextSession: Session | null) => {
       if (!isActive || bootstrapping) return;
 
       if (event === "SIGNED_OUT") {
