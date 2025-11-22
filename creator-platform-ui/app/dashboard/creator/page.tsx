@@ -7,12 +7,14 @@ import { useDashboardStore } from "@/store/useDashboardStore";
 import { formatCurrency } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 
 export default function CreatorDashboard() {
   const { creatorBalance } = useDashboardStore();
   const router = useRouter();
   const role = useAuthStore((state) => state.role);
   const loading = useAuthStore((state) => state.loading);
+  const session = useAuthStore((state) => state.session);
   const [postTitle, setPostTitle] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postContent, setPostContent] = useState("");
@@ -50,6 +52,7 @@ export default function CreatorDashboard() {
   const [groupName, setGroupName] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [groupBanner, setGroupBanner] = useState("");
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
 
   const topMembers = useMemo(
     () => [
@@ -85,7 +88,7 @@ export default function CreatorDashboard() {
     );
   }
 
-  const handlePublishPost = () => {
+  const handlePublishPost = async () => {
     if (!postTitle.trim() && !postContent.trim()) return;
 
     setPosts((prev) => [
@@ -98,12 +101,28 @@ export default function CreatorDashboard() {
       ...prev,
     ]);
 
+    if (session?.user?.id) {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        await supabase.from("group_posts").insert({
+          creator_id: session.user.id,
+          title: postTitle || "Unbenannter Post",
+          content: postContent || "",
+          image_url: postImage || null,
+        });
+        setActionMessage("Post gespeichert und veröffentlicht.");
+      } catch (error) {
+        console.error("Post insert failed", error);
+        setActionMessage("Post konnte nicht gespeichert werden.");
+      }
+    }
+
     setPostTitle("");
     setPostImage("");
     setPostContent("");
   };
 
-  const handleSaveReward = () => {
+  const handleSaveReward = async () => {
     if (!rewardName.trim()) return;
 
     setRewardItems((prev) => {
@@ -118,6 +137,22 @@ export default function CreatorDashboard() {
         ...prev,
       ];
     });
+
+    if (session?.user?.id) {
+      try {
+        const supabase = getSupabaseBrowserClient();
+        await supabase.from("rewards").upsert({
+          id: rewardId ?? undefined,
+          creator_id: session.user.id,
+          title: rewardName,
+          points: Number(rewardPoints) || 0,
+        });
+        setActionMessage("Reward gespeichert.");
+      } catch (error) {
+        console.error("Reward upsert failed", error);
+        setActionMessage("Reward konnte nicht gespeichert werden.");
+      }
+    }
 
     setRewardId(null);
     setRewardName("");
@@ -141,6 +176,28 @@ export default function CreatorDashboard() {
     }
   };
 
+  const handleCreateGroup = async () => {
+    if (!session?.user?.id || !groupName.trim()) return;
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+      await supabase.from("creator_groups").insert({
+        name: groupName,
+        description: groupDescription,
+        price: groupPrice,
+        banner_url: groupBanner || null,
+        creator_id: session.user.id,
+      });
+      setActionMessage("Gruppe erstellt.");
+      setGroupName("");
+      setGroupDescription("");
+      setGroupBanner("");
+    } catch (error) {
+      console.error("Group insert failed", error);
+      setActionMessage("Gruppe konnte nicht gespeichert werden.");
+    }
+  };
+
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
       <SectionHeader
@@ -148,6 +205,7 @@ export default function CreatorDashboard() {
         description="Verwalte Challenges, Rewards und Abo-Preise"
         action={<span className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70">Saldo: {formatCurrency(creatorBalance, "EUR")}</span>}
       />
+      {actionMessage ? <p className="text-sm text-white/70">{actionMessage}</p> : null}
 
       <DashboardCard
         title="Neue Posts"
@@ -266,7 +324,15 @@ export default function CreatorDashboard() {
         <p className="text-sm text-white/60">Passe deinen Preis live an. Alle Updates sind rein UI-basiert.</p>
       </DashboardCard>
 
-      <DashboardCard title="Neue Gruppe" subtitle="community" action={<button className="rounded-full border border-white/20 px-4 py-2 text-xs">Gruppe erstellen</button>}>
+      <DashboardCard
+        title="Neue Gruppe"
+        subtitle="community"
+        action={
+          <button className="rounded-full border border-white/20 px-4 py-2 text-xs" onClick={handleCreateGroup}>
+            Gruppe erstellen
+          </button>
+        }
+      >
         <div className="grid gap-4 md:grid-cols-2">
           <label className="text-sm text-white/70">
             Gruppenname
@@ -298,7 +364,9 @@ export default function CreatorDashboard() {
           />
         </label>
         <div className="mt-3 flex justify-end">
-          <button className="rounded-2xl bg-primary/80 px-4 py-2 text-sm font-semibold">Gruppe erstellen</button>
+          <button className="rounded-2xl bg-primary/80 px-4 py-2 text-sm font-semibold" onClick={handleCreateGroup}>
+            Gruppe erstellen
+          </button>
         </div>
       </DashboardCard>
 

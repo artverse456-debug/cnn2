@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { supabaseAuthClient, type AuthSession } from "@/lib/supabaseClient";
+import type { Session } from "@supabase/supabase-js";
+import { getSupabaseBrowserClient } from "@/lib/supabase/browserClient";
 import {
   DEFAULT_AVATAR_URL,
   ensureProfile,
@@ -10,12 +11,12 @@ import {
 } from "@/lib/profileService";
 
 type AuthState = {
-  session: AuthSession | null;
+  session: Session | null;
   profile: Profile | null;
   role: UserRole | null;
   loading: boolean;
   error: string | null;
-  initialize: (sessionOverride?: AuthSession | null, preferredRole?: UserRole) => Promise<Profile | null>;
+  initialize: (sessionOverride?: Session | null, preferredRole?: UserRole) => Promise<Profile | null>;
   clear: () => void;
   setRole: (role: UserRole) => Promise<Profile | null>;
   updateProfile: (updates: ProfileUpdatePayload) => Promise<Profile | null>;
@@ -33,7 +34,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const supabase = getSupabaseBrowserClient();
+    const existingSession = sessionOverride ?? (await supabase.auth.getSession()).data.session;
+    const session = existingSession ?? null;
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });
@@ -42,14 +45,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     try {
       const profile = await ensureProfile(session, preferredRole);
+      const resolvedProfile = profile
+        ? { ...profile, avatar_url: profile.avatar_url ?? DEFAULT_AVATAR_URL }
+        : profile;
       set({
         session,
-        profile,
-        role: profile?.role ?? null,
+        profile: resolvedProfile,
+        role: resolvedProfile?.role ?? null,
         loading: false,
-        error: profile ? null : "Profil konnte nicht geladen werden",
+        error: resolvedProfile ? null : "Profil konnte nicht geladen werden",
       });
-      return profile;
+      return resolvedProfile ?? null;
     } catch (error) {
       console.error("Failed to initialize auth", error);
       set({ session, profile: null, role: null, loading: false, error: "Profil konnte nicht geladen werden" });
@@ -60,23 +66,29 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, { role });
-    set({ profile: updatedProfile, role: updatedProfile?.role ?? role });
-    return updatedProfile;
+    const updatedProfile = await updateProfile(state.session.user.id, { role });
+    const resolvedProfile = updatedProfile
+      ? { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL }
+      : updatedProfile;
+    set({ profile: resolvedProfile, role: resolvedProfile?.role ?? role });
+    return resolvedProfile;
   },
   updateProfile: async (updates) => {
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, updates);
-    if (updatedProfile) {
+    const updatedProfile = await updateProfile(state.session.user.id, updates);
+    const resolvedProfile = updatedProfile
+      ? { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL }
+      : updatedProfile;
+    if (resolvedProfile) {
       set({
-        profile: { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL },
-        role: updatedProfile.role ?? state.role,
+        profile: resolvedProfile,
+        role: resolvedProfile.role ?? state.role,
       });
     }
 
-    return updatedProfile;
+    return resolvedProfile;
   },
   isCreator: () => get().role === "creator",
   isFan: () => get().role === "fan",
