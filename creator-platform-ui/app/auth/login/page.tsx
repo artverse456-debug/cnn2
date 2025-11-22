@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { FormEvent, useEffect, useState, useTransition } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { supabaseBrowserClient } from "@/lib/supabaseClient";
+import { loginAction } from "./actions";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,6 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [, startTransition] = useTransition();
   const initializeAuth = useAuthStore((state) => state.initialize);
   const profile = useAuthStore((state) => state.profile);
   const session = useAuthStore((state) => state.session);
@@ -20,7 +22,7 @@ export default function LoginPage() {
   useEffect(() => {
     if (loading || !session || !profile) return;
 
-    const nextRoute = profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+    const nextRoute = profile.role === "creator" ? "/creator-hub" : "/fan-hub";
     router.replace(nextRoute);
   }, [loading, profile, router, session]);
 
@@ -29,19 +31,31 @@ export default function LoginPage() {
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const result = await supabaseAuthClient.signIn(email, password);
-      const nextProfile = await initializeAuth(result.session ?? undefined);
-      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
-      const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
 
-      router.push(nextRoute);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Login fehlgeschlagen.";
-      setError(message);
-    } finally {
+      const result = await loginAction(formData);
+
+      if (result.error) {
+        setError(result.error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (result.session) {
+        await supabaseBrowserClient.auth.setSession({
+          access_token: result.session.access_token,
+          refresh_token: result.session.refresh_token!,
+        });
+
+        await initializeAuth(result.session);
+        router.push("/");
+      }
+
       setIsSubmitting(false);
-    }
+    });
   };
 
   return (

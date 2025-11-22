@@ -65,7 +65,7 @@ export default function CreatorDashboard() {
   useEffect(() => {
     if (loading) return;
     if (role === "fan") {
-      router.replace("/dashboard/fan");
+      router.replace("/fan-hub");
     }
   }, [loading, role, router]);
 

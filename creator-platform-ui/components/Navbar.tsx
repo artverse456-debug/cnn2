@@ -1,22 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { BrandLogo } from "./BrandLogo";
 import { useAuthStore } from "@/store/useAuthStore";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
+import { supabaseBrowserClient } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation";
 
 type UserRole = "creator" | "fan" | null;
 
 const links = [
   { href: "/explore", label: "Explore" },
-  { href: "/dashboard/creator", label: "Creator Hub" },
-  { href: "/dashboard/fan", label: "Fan Hub" },
+  { href: "/creator-hub", label: "Creator Hub" },
+  { href: "/fan-hub", label: "Fan Hub" },
   { href: "/payments", label: "Payments" },
   { href: "/settings", label: "Settings" }
 ];
 
 export function Navbar() {
+  const router = useRouter();
   const role = useAuthStore((state) => state.role);
   const profile = useAuthStore((state) => state.profile);
   const loading = useAuthStore((state) => state.loading);
@@ -24,7 +26,6 @@ export function Navbar() {
   const clearAuth = useAuthStore((state) => state.clear);
   const isCreator = useAuthStore((state) => state.isCreator);
   const isFan = useAuthStore((state) => state.isFan);
-  const [showDropdown, setShowDropdown] = useState(false);
 
   const avatarUrl = useMemo(() => {
     if (profile?.avatar_url) return profile.avatar_url;
@@ -39,9 +40,9 @@ export function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await supabaseAuthClient.signOut();
+      await supabaseBrowserClient.auth.signOut();
       clearAuth();
-      setShowDropdown(false);
+      router.push("/");
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -61,9 +62,9 @@ export function Navbar() {
         </nav>
         <div className="flex items-center gap-3">
           {session && profile ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowDropdown((prev) => !prev)}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/settings"
                 className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white"
               >
                 <span className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-black/40">
@@ -73,36 +74,18 @@ export function Navbar() {
                   <span className="text-xs uppercase tracking-[0.2em] text-white/50">{role}</span>
                   <span className="text-sm font-semibold text-white">{profile.username ?? profile.email}</span>
                 </div>
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
+              >
+                Logout
               </button>
-              {showDropdown ? (
-                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/10 bg-[#0b0c13] p-2 text-sm shadow-2xl">
-                  <Link
-                    href="/dashboard/creator"
-                    className="block rounded-xl px-3 py-2 text-white/80 hover:bg-white/5"
-                    onClick={() => setShowDropdown(false)}
-                  >
-                    Profil
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="block rounded-xl px-3 py-2 text-white/80 hover:bg-white/5"
-                    onClick={() => setShowDropdown(false)}
-                  >
-                    Settings
-                  </Link>
-                  <button
-                    onClick={handleLogout}
-                    className="mt-1 block w-full rounded-xl px-3 py-2 text-left text-white/80 hover:bg-white/5"
-                  >
-                    Logout
-                  </button>
-                </div>
-              ) : null}
             </div>
           ) : (
             <>
               <Link
-                href="/auth/login"
+                href="/login"
                 className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
               >
                 Login

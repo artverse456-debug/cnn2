@@ -1,5 +1,7 @@
+"use client";
+
 import { create } from "zustand";
-import { supabaseAuthClient, type AuthSession } from "@/lib/supabaseClient";
+import { supabaseBrowserClient, type AuthSession } from "@/lib/supabaseClient";
 import {
   DEFAULT_AVATAR_URL,
   ensureProfile,
@@ -33,7 +35,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const sessionResult = sessionOverride
+      ? { data: { session: sessionOverride } }
+      : await supabaseBrowserClient.auth.getSession();
+
+    const session = sessionOverride ?? sessionResult.data.session;
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });

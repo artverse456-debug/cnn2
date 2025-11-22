@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { FormEvent, useEffect, useState, useTransition } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
+import { registerAction } from "./actions";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -17,11 +17,12 @@ export default function RegisterPage() {
   const profile = useAuthStore((state) => state.profile);
   const session = useAuthStore((state) => state.session);
   const loading = useAuthStore((state) => state.loading);
+  const [, startTransition] = useTransition();
 
   useEffect(() => {
     if (loading || !session || !profile) return;
 
-    const nextRoute = profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+    const nextRoute = profile.role === "creator" ? "/creator-hub" : "/fan-hub";
     router.replace(nextRoute);
   }, [loading, profile, router, session]);
 
@@ -31,15 +32,24 @@ export default function RegisterPage() {
     setError(null);
     setSuccess(null);
 
-    try {
-      await supabaseAuthClient.signUp(email, password, role);
-      setSuccess("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Registrierung fehlgeschlagen.";
-      setError(message);
-    } finally {
+    startTransition(async () => {
+      const formData = new FormData();
+      formData.append("email", email);
+      formData.append("password", password);
+      formData.append("role", role);
+
+      const result = await registerAction(formData);
+
+      if (result.error) {
+        setError(result.error);
+      }
+
+      if (result.success) {
+        setSuccess(result.success);
+      }
+
       setIsSubmitting(false);
-    }
+    });
   };
 
   return (

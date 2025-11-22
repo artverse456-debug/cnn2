@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabaseAuthClient } from "@/lib/supabaseClient";
+import { supabaseBrowserClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useDashboardStore } from "@/store/useDashboardStore";
 
@@ -89,7 +89,7 @@ export default function SettingsPage() {
   );
 
   const handleLogout = async () => {
-    await supabaseAuthClient.signOut();
+    await supabaseBrowserClient.auth.signOut();
     clearAuth();
     router.push("/");
   };

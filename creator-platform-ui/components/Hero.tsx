@@ -6,20 +6,20 @@ export function Hero() {
       <div>
         <p className="text-sm uppercase tracking-[0.3em] text-primary-light">Fan-Ökonomie für Creator-Gruppen</p>
         <h1 className="mt-4 text-4xl font-bold text-white md:text-5xl">
-          Baue aktive Communities, die <span className="text-gradient">Support belohnen</span>
+          Fanclubs, in denen <span className="text-gradient">Support belohnt</span> wird
         </h1>
         <p className="mt-6 text-lg text-white/70">
-          Creator starten Gruppen, definieren Rewards und Preise. Fans treten free oder premium bei, sammeln Punkte durch Engagement und lösen sie für echte Gegenwerte ein.
+          Creator erstellen Fanclubs mit Free- oder Paid-Mitgliedschaft. Paid Fans erhalten monatliche Punkte, Engagement bringt zusätzliche Punkte und alles kann gegen Creator-Rewards wie Merch oder Shoutouts eingelöst werden. Challenges bleiben ein Bonus, nicht der Hauptfokus.
         </p>
         <div className="mt-8 flex flex-wrap gap-4">
           <Link
-            href="/auth/login"
+            href="/login"
             className="rounded-full bg-gradient-to-r from-primary to-accent px-8 py-3 font-semibold shadow-soft"
           >
             Creator werden
           </Link>
           <Link
-            href="/auth/login"
+            href="/login"
             className="rounded-full border border-white/20 px-8 py-3 font-semibold text-white/80 hover:border-primary"
           >
             Als Fan starten
@@ -30,10 +30,10 @@ export function Hero() {
         <p className="text-xs uppercase tracking-[0.3em] text-white/60">CreatorPulse Fan-Economy Stack</p>
         <div className="mt-6 space-y-4">
           {[
-            { title: "Beitreten", description: "Fans treten free oder premium Gruppen bei" },
-            { title: "Punkte sammeln", description: "Interaktionen und Mitgliedschaften bringen Points" },
-            { title: "Rewards einlösen", description: "Points werden gegen Merch, Shoutouts, Drops getauscht" },
-            { title: "Creator-Einkommen", description: "Mitgliedsbeiträge + Reward-Käufe landen beim Creator" }
+            { title: "Fanclub erstellen", description: "Creator starten Gruppen mit Free oder Paid Optionen" },
+            { title: "Punkte verteilen", description: "Paid Fans erhalten monatliche Punkte als Start" },
+            { title: "Engagement belohnen", description: "Aktive Fans sammeln zusätzliche Punkte" },
+            { title: "Rewards einlösen", description: "Punkte gegen Merch, Shoutouts oder Drops tauschen" }
           ].map((step, index) => (
             <div key={step.title} className="flex items-center gap-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20">
