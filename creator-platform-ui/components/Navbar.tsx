@@ -4,6 +4,7 @@ import Link from "next/link";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { BrandLogo } from "./BrandLogo";
 import { useAuthStore } from "@/store/useAuthStore";
+import { useMemo, useState } from "react";
 
 type UserRole = "creator" | "fan" | null;
 
@@ -17,13 +18,22 @@ const links = [
 
 export function Navbar() {
   const role = useAuthStore((state) => state.role);
+  const profile = useAuthStore((state) => state.profile);
   const loading = useAuthStore((state) => state.loading);
   const session = useAuthStore((state) => state.session);
   const clearAuth = useAuthStore((state) => state.clear);
+  const isCreator = useAuthStore((state) => state.isCreator);
+  const isFan = useAuthStore((state) => state.isFan);
+  const [showDropdown, setShowDropdown] = useState(false);
+
+  const avatarUrl = useMemo(() => {
+    if (profile?.avatar_url) return profile.avatar_url;
+    return "/logo.svg";
+  }, [profile?.avatar_url]);
 
   const filteredLinks = links.filter((link) => {
-    if (link.label === "Creator Hub") return role === "creator";
-    if (link.label === "Fan Hub") return role === "fan";
+    if (link.label === "Creator Hub") return isCreator();
+    if (link.label === "Fan Hub") return isFan();
     return !loading;
   });
 
@@ -31,6 +41,7 @@ export function Navbar() {
     try {
       await supabaseAuthClient.signOut();
       clearAuth();
+      setShowDropdown(false);
     } catch (error) {
       console.error("Logout failed", error);
     }
@@ -49,13 +60,45 @@ export function Navbar() {
             ))}
         </nav>
         <div className="flex items-center gap-3">
-          {session ? (
-            <button
-              onClick={handleLogout}
-              className="rounded-full border border-white/20 px-4 py-2 text-sm font-medium hover:border-primary"
-            >
-              Logout
-            </button>
+          {session && profile ? (
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown((prev) => !prev)}
+                className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white"
+              >
+                <span className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-black/40">
+                  <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
+                </span>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs uppercase tracking-[0.2em] text-white/50">{role}</span>
+                  <span className="text-sm font-semibold text-white">{profile.username ?? profile.email}</span>
+                </div>
+              </button>
+              {showDropdown ? (
+                <div className="absolute right-0 mt-2 w-48 rounded-2xl border border-white/10 bg-[#0b0c13] p-2 text-sm shadow-2xl">
+                  <Link
+                    href="/dashboard/creator"
+                    className="block rounded-xl px-3 py-2 text-white/80 hover:bg-white/5"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Profil
+                  </Link>
+                  <Link
+                    href="/settings"
+                    className="block rounded-xl px-3 py-2 text-white/80 hover:bg-white/5"
+                    onClick={() => setShowDropdown(false)}
+                  >
+                    Settings
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="mt-1 block w-full rounded-xl px-3 py-2 text-left text-white/80 hover:bg-white/5"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : null}
+            </div>
           ) : (
             <>
               <Link
