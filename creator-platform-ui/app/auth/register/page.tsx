@@ -33,7 +33,7 @@ export default function RegisterPage() {
 
     try {
       await supabaseAuthClient.signUp(email, password, role);
-      setSuccess("Bitte bestätige deine E-Mail. Du kannst dich erst danach einloggen.");
+      setSuccess("Bitte bestätige deine E-Mail, bevor du dich einloggen kannst.");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Registrierung fehlgeschlagen.";
       setError(message);

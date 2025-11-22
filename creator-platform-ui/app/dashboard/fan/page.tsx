@@ -25,13 +25,18 @@ export default function FanDashboard() {
   const router = useRouter();
   const role = useAuthStore((state) => state.role);
   const loading = useAuthStore((state) => state.loading);
+  const session = useAuthStore((state) => state.session);
 
   useEffect(() => {
     if (loading) return;
+    if (!session) {
+      router.replace("/auth/login");
+      return;
+    }
     if (role === "creator") {
       router.replace("/dashboard/creator");
     }
-  }, [loading, role, router]);
+  }, [loading, role, router, session]);
 
   if (loading) {
     return (
