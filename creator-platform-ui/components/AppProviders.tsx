@@ -9,13 +9,34 @@ export function AppProviders({ children }: { children: ReactNode }) {
   const initialize = useAuthStore((state) => state.initialize);
 
   useEffect(() => {
-    initialize();
+    let isActive = true;
+    let bootstrapping = true;
 
-    const unsubscribe = supabaseAuthClient.onAuthStateChange((nextSession) => {
+    const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
+      if (!isActive || bootstrapping) return;
+
+      if (event === "SIGNED_OUT") {
+        initialize(null);
+        return;
+      }
+
       initialize(nextSession ?? null);
     });
 
+    const bootstrap = async () => {
+      const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
+      const existingSession = callbackSession ?? supabaseAuthClient.getSession();
+
+      if (!isActive) return;
+
+      await initialize(existingSession ?? null);
+      bootstrapping = false;
+    };
+
+    bootstrap();
+
     return () => {
+      isActive = false;
       unsubscribe?.();
     };
   }, [initialize]);
