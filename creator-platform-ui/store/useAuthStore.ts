@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const session = sessionOverride ?? (await supabaseAuthClient.getSession());
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });
@@ -60,7 +60,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, { role });
+    const updatedProfile = await updateProfile(state.session.user.id, { role });
     set({ profile: updatedProfile, role: updatedProfile?.role ?? role });
     return updatedProfile;
   },
@@ -68,7 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const state = get();
     if (!state.session?.user?.id) return null;
 
-    const updatedProfile = await updateProfile(state.session.access_token, state.session.user.id, updates);
+    const updatedProfile = await updateProfile(state.session.user.id, updates);
     if (updatedProfile) {
       set({
         profile: { ...updatedProfile, avatar_url: updatedProfile.avatar_url ?? DEFAULT_AVATAR_URL },
