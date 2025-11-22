@@ -12,6 +12,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
     let isActive = true;
     let bootstrapping = true;
 
+    // Avoid manual callback typings to align with Supabase v2 callback signature
     const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
       if (!isActive || bootstrapping) return;
 
