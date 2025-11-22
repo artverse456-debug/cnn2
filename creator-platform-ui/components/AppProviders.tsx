@@ -20,12 +20,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
         return;
       }
 
-      initialize(nextSession ?? null);
+      void initialize(nextSession ?? null);
     });
 
     const bootstrap = async () => {
       const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      const existingSession = callbackSession ?? supabaseAuthClient.getSession();
+      const existingSession = callbackSession ?? (await supabaseAuthClient.getSession());
 
       if (!isActive) return;
 
