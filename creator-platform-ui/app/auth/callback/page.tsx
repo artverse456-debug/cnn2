@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import type { UserRole } from "@/store/useAuthStore";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -19,11 +20,11 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const processCallback = async () => {
-      const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      await initializeAuth(callbackSession ?? undefined);
+      const callbackSession = await supabaseAuthClient.exchangeCodeForSession();
+      await initializeAuth(callbackSession ?? null, callbackSession?.user?.user_metadata?.role as UserRole);
     };
 
-    processCallback();
+    void processCallback();
   }, [initializeAuth]);
 
   useEffect(() => {

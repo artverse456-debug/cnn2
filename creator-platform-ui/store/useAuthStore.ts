@@ -1,5 +1,6 @@
 import { create } from "zustand";
-import { supabaseAuthClient, type AuthSession } from "@/lib/supabaseClient";
+import type { Session } from "@supabase/supabase-js";
+import { supabaseAuthClient } from "@/lib/supabaseClient";
 import {
   DEFAULT_AVATAR_URL,
   ensureProfile,
@@ -10,12 +11,12 @@ import {
 } from "@/lib/profileService";
 
 type AuthState = {
-  session: AuthSession | null;
+  session: Session | null;
   profile: Profile | null;
   role: UserRole | null;
   loading: boolean;
   error: string | null;
-  initialize: (sessionOverride?: AuthSession | null, preferredRole?: UserRole) => Promise<Profile | null>;
+  initialize: (sessionOverride?: Session | null, preferredRole?: UserRole) => Promise<Profile | null>;
   clear: () => void;
   setRole: (role: UserRole) => Promise<Profile | null>;
   updateProfile: (updates: ProfileUpdatePayload) => Promise<Profile | null>;
@@ -33,7 +34,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const session = sessionOverride ?? (await supabaseAuthClient.getSession());
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });
