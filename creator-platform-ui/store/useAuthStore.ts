@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? supabaseAuthClient.getSession();
+    const session = sessionOverride ?? (await supabaseAuthClient.getSession());
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });
