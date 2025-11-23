@@ -13,14 +13,17 @@ export default function AuthCallbackPage() {
   const loading = useAuthStore((state) => state.loading);
 
   const nextRoute = useMemo(() => {
-    if (!profile) return null;
-    return profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
-  }, [profile]);
+    const role = profile?.role ?? (session?.user?.user_metadata?.role as "creator" | "fan" | undefined) ?? "fan";
+    return role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+  }, [profile?.role, session?.user?.user_metadata?.role]);
 
   useEffect(() => {
     const processCallback = async () => {
       const callbackSession = await supabaseAuthClient.handleAuthCallbackFromUrl();
-      await initializeAuth(callbackSession ?? undefined);
+      const activeSession = callbackSession ?? (await supabaseAuthClient.getSession());
+      const preferredRole = (activeSession?.user?.user_metadata?.role as "creator" | "fan" | undefined) ?? undefined;
+
+      await initializeAuth(activeSession ?? null, preferredRole);
     };
 
     processCallback();
@@ -29,9 +32,9 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     if (loading) return;
 
-    if (session && nextRoute) {
+    if (session) {
       router.replace(nextRoute);
-    } else if (!session && !loading) {
+    } else {
       router.replace("/auth/login");
     }
   }, [loading, nextRoute, router, session]);

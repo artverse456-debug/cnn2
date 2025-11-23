@@ -30,10 +30,11 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const result = await supabaseAuthClient.signIn(email, password);
-      const nextProfile = await initializeAuth(result.session ?? undefined);
-      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
-      const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
+      const result = await supabaseAuthClient.signInWithPassword(email, password);
+      const preferredRole = (result.user?.user_metadata?.role as "creator" | "fan" | undefined) ?? "fan";
+      const nextProfile = await initializeAuth(result.session ?? undefined, preferredRole);
+      const resolvedRole = nextProfile?.role ?? preferredRole;
+      const nextRoute = resolvedRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
 
       router.push(nextRoute);
     } catch (err) {
