@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
+import type { UserRole } from "@/store/useAuthStore";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -31,8 +32,8 @@ export default function LoginPage() {
 
     try {
       const result = await supabaseAuthClient.signIn(email, password);
-      const nextProfile = await initializeAuth(result.session ?? undefined);
-      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as "creator" | "fan" | null) ?? "fan";
+      const nextProfile = await initializeAuth(result.session ?? null, result.session?.user?.user_metadata?.role as UserRole);
+      const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as UserRole | null) ?? "fan";
       const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
 
       router.push(nextRoute);

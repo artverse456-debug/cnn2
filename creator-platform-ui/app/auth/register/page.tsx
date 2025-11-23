@@ -4,13 +4,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
-import { useAuthStore } from "@/store/useAuthStore";
+import { useAuthStore, type UserRole } from "@/store/useAuthStore";
 
 export default function RegisterPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("creator");
+  const [role, setRole] = useState<UserRole>("creator");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
@@ -74,7 +74,7 @@ export default function RegisterPage() {
           <select
             className="mt-2 w-full rounded-2xl border border-white/10 bg-black/40 px-4 py-3"
             value={role}
-            onChange={(event) => setRole(event.target.value)}
+            onChange={(event) => setRole(event.target.value as UserRole)}
           >
             <option value="creator" className="bg-black">
               Creator
