@@ -34,7 +34,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   initialize: async (sessionOverride, preferredRole) => {
     set({ loading: true, error: null });
 
-    const session = sessionOverride ?? (await supabaseAuthClient.getSession());
+    let session = sessionOverride;
+
+    if (session === undefined) {
+      try {
+        session = await supabaseAuthClient.getSession();
+      } catch (error) {
+        console.error("Failed to get session", error);
+        set({ session: null, profile: null, role: null, loading: false, error: "Sitzung konnte nicht geladen werden" });
+        return null;
+      }
+    }
 
     if (!session) {
       set({ session: null, profile: null, role: null, loading: false });

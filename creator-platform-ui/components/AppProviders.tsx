@@ -15,7 +15,12 @@ export function AppProviders({ children }: { children: ReactNode }) {
 
     const syncSession = async (session?: Session | null) => {
       if (!isActive) return;
-      await initialize(session ?? null);
+      try {
+        await initialize(session ?? null);
+      } catch (error) {
+        console.error("Failed to sync session", error);
+        await initialize(null);
+      }
     };
 
     const unsubscribe = supabaseAuthClient.onAuthStateChange((event, nextSession) => {
@@ -30,9 +35,20 @@ export function AppProviders({ children }: { children: ReactNode }) {
     });
 
     const bootstrap = async () => {
-      const existingSession = await supabaseAuthClient.getSession();
-      await syncSession(existingSession ?? null);
-      bootstrapping = false;
+      let existingSession: Session | null = null;
+
+      try {
+        existingSession = await supabaseAuthClient.getSession();
+      } catch (error) {
+        console.error("Failed to fetch session", error);
+        existingSession = null;
+      }
+
+      try {
+        await syncSession(existingSession ?? null);
+      } finally {
+        bootstrapping = false;
+      }
     };
 
     void bootstrap();
