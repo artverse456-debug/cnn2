@@ -25,6 +25,8 @@ export default function FanDashboard() {
   const router = useRouter();
   const role = useAuthStore((state) => state.role);
   const loading = useAuthStore((state) => state.loading);
+  const profile = useAuthStore((state) => state.profile);
+  const pointsBalance = profile?.points_balance ?? profile?.points ?? fanPoints;
 
   useEffect(() => {
     if (loading) return;
@@ -54,7 +56,7 @@ export default function FanDashboard() {
       <SectionHeader
         title="Fan Dashboard"
         description="Sammle Punkte, tausche Rewards und verfolge deine Geschichte"
-        action={<span className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70">{fanPoints} Punkte</span>}
+        action={<span className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70">{pointsBalance} Punkte</span>}
       />
 
       <div className="grid gap-8 md:grid-cols-2">
@@ -74,7 +76,7 @@ export default function FanDashboard() {
         <DashboardCard title="Deine Punkte" subtitle="score">
           <div className="rounded-2xl border border-primary/40 bg-primary/10 p-6 text-white">
             <p className="text-sm uppercase tracking-[0.2em] text-white/70">Aktueller Stand</p>
-            <p className="mt-3 text-4xl font-semibold">{fanPoints} Punkte</p>
+            <p className="mt-3 text-4xl font-semibold">{pointsBalance} Punkte</p>
             <p className="mt-2 text-sm text-white/70">Basierend auf deinen Challenges, Gruppen und Rewards.</p>
           </div>
         </DashboardCard>

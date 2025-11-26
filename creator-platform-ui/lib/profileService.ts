@@ -11,13 +11,21 @@ export type Profile = {
   avatar_url?: string | null;
   email?: string | null;
   points?: number | null;
+  points_balance?: number | null;
+  is_subscriber?: boolean | null;
+  subscription_points?: number | null;
 };
 
 export type ProfileUpdatePayload = {
   username?: string | null;
   avatar_url?: string | null;
   role?: UserRole;
+  points_balance?: number;
+  is_subscriber?: boolean;
+  subscription_points?: number | null;
 };
+
+export type PointEventType = "challenge" | "reward_use" | "subscription";
 
 const DEFAULT_AVATAR_URL = "/logo.svg";
 
@@ -90,6 +98,9 @@ export async function upsertProfile(
         username,
         avatar_url,
         points: payload.existingProfile?.points ?? 0,
+        points_balance: payload.existingProfile?.points_balance ?? payload.existingProfile?.points ?? 0,
+        is_subscriber: payload.existingProfile?.is_subscriber ?? false,
+        subscription_points: payload.existingProfile?.subscription_points ?? null,
       }),
     });
 
@@ -115,6 +126,50 @@ export async function ensureProfile(session: AuthSession, preferredRole?: UserRo
   });
 
   return profile ?? existingProfile ?? null;
+}
+
+export async function createPointEvent(
+  accessToken: string,
+  userId: string,
+  payload: { delta: number; type: PointEventType; metadata?: Record<string, unknown> }
+): Promise<void> {
+  await requestProfile(`/rest/v1/point_events`, {
+    method: "POST",
+    headers: {
+      ...authHeaders(accessToken),
+      Prefer: "return=minimal",
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      points_delta: payload.delta,
+      type: payload.type,
+      metadata: payload.metadata ?? null,
+    }),
+  });
+}
+
+export async function hasReceivedSubscriptionPointsThisWeek(accessToken: string, userId: string): Promise<boolean> {
+  const now = new Date();
+  const day = now.getUTCDay();
+  const diffToMonday = day === 0 ? -6 : 1 - day;
+  const weekStart = new Date(now);
+  weekStart.setUTCDate(now.getUTCDate() + diffToMonday);
+  weekStart.setUTCHours(0, 0, 0, 0);
+
+  try {
+    const data = await requestProfile<{ id: string }[]>(
+      `/rest/v1/point_events?select=id&user_id=eq.${userId}&type=eq.subscription&created_at=gte.${weekStart.toISOString()}&limit=1`,
+      {
+        method: "GET",
+        headers: authHeaders(accessToken),
+      }
+    );
+
+    return (data ?? []).length > 0;
+  } catch (error) {
+    console.error("Failed to check subscription points", error);
+    return false;
+  }
 }
 
 export async function updateProfile(

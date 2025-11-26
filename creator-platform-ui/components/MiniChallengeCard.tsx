@@ -10,7 +10,15 @@ export type MiniChallenge = {
   actionLabel?: string;
 };
 
-export function MiniChallengeCard({ challenge }: { challenge: MiniChallenge }) {
+export function MiniChallengeCard({
+  challenge,
+  onAction,
+  completed,
+}: {
+  challenge: MiniChallenge;
+  onAction?: (challenge: MiniChallenge) => void;
+  completed?: boolean;
+}) {
   return (
     <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white/80 shadow-lg shadow-black/20">
       <div className="flex items-start justify-between gap-3">
@@ -36,8 +44,12 @@ export function MiniChallengeCard({ challenge }: { challenge: MiniChallenge }) {
           <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
           <span>Aktiv</span>
         </div>
-        <button className="rounded-xl border border-primary/30 bg-primary px-3.5 py-2 text-sm font-semibold text-white transition hover:border-primary/50 hover:bg-primary/80">
-          {challenge.actionLabel ?? "Teilnehmen"}
+        <button
+          className="rounded-xl border border-primary/30 bg-primary px-3.5 py-2 text-sm font-semibold text-white transition hover:border-primary/50 hover:bg-primary/80 disabled:cursor-not-allowed disabled:border-white/10 disabled:bg-white/10 disabled:text-white/60"
+          onClick={() => onAction?.(challenge)}
+          disabled={completed}
+        >
+          {completed ? "Abgeschlossen" : challenge.actionLabel ?? "Teilnehmen"}
         </button>
       </div>
     </div>

@@ -24,6 +24,7 @@ export function Navbar() {
   const clearAuth = useAuthStore((state) => state.clear);
   const isCreator = useAuthStore((state) => state.isCreator);
   const isFan = useAuthStore((state) => state.isFan);
+  const pointsBalance = useAuthStore((state) => state.profile?.points_balance ?? state.profile?.points ?? 0);
   const [showDropdown, setShowDropdown] = useState(false);
 
   const avatarUrl = useMemo(() => {
@@ -66,6 +67,9 @@ export function Navbar() {
                 onClick={() => setShowDropdown((prev) => !prev)}
                 className="flex items-center gap-3 rounded-full border border-white/15 bg-white/5 px-3 py-2 text-sm font-medium text-white"
               >
+                <span className="flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-white/80">
+                  {pointsBalance} Punkte
+                </span>
                 <span className="h-8 w-8 overflow-hidden rounded-full border border-white/10 bg-black/40">
                   <img src={avatarUrl} alt="Avatar" className="h-full w-full object-cover" />
                 </span>

@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { creatorGroups } from "@/lib/data";
 import { SectionHeader } from "@/components/SectionHeader";
 import { SearchInput } from "@/components/SearchInput";
 import { FilterBar } from "@/components/FilterBar";
 import { MiniChallengeCard, type MiniChallenge } from "@/components/MiniChallengeCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type TopCreator = {
   id: string;
@@ -116,6 +118,8 @@ const topCreators: TopCreator[] = [
 
 export default function ExplorePage() {
   const { activeFilter } = useDashboardStore();
+  const applyPointChange = useAuthStore((state) => state.applyPointChange);
+  const [completedMiniChallenges, setCompletedMiniChallenges] = useState<Set<string>>(new Set());
   const allChallenges = [...creatorMiniChallenges, ...platformMiniChallenges];
 
   const hasFollowersData = topCreators.some((creator) => typeof creator.followers === "number");
@@ -150,6 +154,27 @@ export default function ExplorePage() {
     hasFollowersData || hasMembersData || hasPointsData
       ? sortedTopCreators.slice(0, 3)
       : topCreators.slice(0, 3);
+
+  const handleMiniChallenge = async (challenge: MiniChallenge) => {
+    if (completedMiniChallenges.has(challenge.id)) return;
+
+    setCompletedMiniChallenges((prev) => {
+      const updated = new Set(prev);
+      updated.add(challenge.id);
+      return updated;
+    });
+
+    try {
+      await applyPointChange?.(1, "challenge", { challengeId: challenge.id, title: challenge.title });
+    } catch (error) {
+      console.error("Failed to reward challenge points", error);
+      setCompletedMiniChallenges((prev) => {
+        const updated = new Set(prev);
+        updated.delete(challenge.id);
+        return updated;
+      });
+    }
+  };
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
@@ -308,7 +333,12 @@ export default function ExplorePage() {
               </div>
               <div className="mt-6 space-y-3">
                 {allChallenges.map((challenge) => (
-                  <MiniChallengeCard key={challenge.id} challenge={challenge} />
+                  <MiniChallengeCard
+                    key={challenge.id}
+                    challenge={challenge}
+                    onAction={handleMiniChallenge}
+                    completed={completedMiniChallenges.has(challenge.id)}
+                  />
                 ))}
               </div>
             </section>
@@ -369,14 +399,24 @@ export default function ExplorePage() {
           <div className="space-y-3 opacity-90">
             <div className="space-y-3">
               {creatorMiniChallenges.map((challenge) => (
-                <MiniChallengeCard key={challenge.id} challenge={challenge} />
+                <MiniChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  onAction={handleMiniChallenge}
+                  completed={completedMiniChallenges.has(challenge.id)}
+                />
               ))}
             </div>
 
             <div className="space-y-3 pt-2">
               <p className="text-xs uppercase tracking-[0.3em] text-white/50">Plattform Mini-Challenges</p>
               {platformMiniChallenges.map((challenge) => (
-                <MiniChallengeCard key={challenge.id} challenge={challenge} />
+                <MiniChallengeCard
+                  key={challenge.id}
+                  challenge={challenge}
+                  onAction={handleMiniChallenge}
+                  completed={completedMiniChallenges.has(challenge.id)}
+                />
               ))}
             </div>
           </div>

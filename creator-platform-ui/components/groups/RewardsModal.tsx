@@ -1,6 +1,7 @@
 "use client";
 
 import { rewards } from "@/lib/data";
+import { useAuthStore } from "@/store/useAuthStore";
 
 type RewardsModalProps = {
   open: boolean;
@@ -8,6 +9,15 @@ type RewardsModalProps = {
 };
 
 export function RewardsModal({ open, onClose }: RewardsModalProps) {
+  const applyPointChange = useAuthStore((state) => state.applyPointChange);
+  const pointsBalance = useAuthStore((state) => state.profile?.points_balance ?? state.profile?.points ?? 0);
+
+  const handleRedeem = async (rewardId: string, cost: number, title: string) => {
+    if (!applyPointChange) return;
+
+    await applyPointChange(-cost, "reward_use", { rewardId, rewardTitle: title });
+  };
+
   if (!open) return null;
 
   return (
@@ -32,7 +42,11 @@ export function RewardsModal({ open, onClose }: RewardsModalProps) {
               <p className="text-xs uppercase tracking-[0.3em] text-white/50">{reward.points} Punkte</p>
               <h4 className="mt-2 text-lg font-semibold text-white">{reward.title}</h4>
               <p className="mt-2 text-sm text-white/70">{reward.description}</p>
-              <button className="mt-4 w-full rounded-2xl bg-white/90 py-2 text-sm font-semibold text-black hover:bg-white">
+              <button
+                className="mt-4 w-full rounded-2xl bg-white/90 py-2 text-sm font-semibold text-black transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-60"
+                onClick={() => handleRedeem(reward.id, reward.points, reward.title)}
+                disabled={pointsBalance < reward.points}
+              >
                 Einlösen
               </button>
             </div>

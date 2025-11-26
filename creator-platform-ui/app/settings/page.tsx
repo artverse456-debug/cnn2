@@ -286,7 +286,7 @@ export default function SettingsPage() {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4 text-white">
                 <p className="text-xs uppercase tracking-[0.2em] text-white/70">Punktestand</p>
-                <p className="mt-3 text-4xl font-semibold">{profile?.points ?? fanPoints} Punkte</p>
+                <p className="mt-3 text-4xl font-semibold">{profile?.points_balance ?? profile?.points ?? fanPoints} Punkte</p>
                 <p className="mt-2 text-sm text-white/70">Basierend auf Challenges, Gruppen und Rewards.</p>
               </div>
               <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
