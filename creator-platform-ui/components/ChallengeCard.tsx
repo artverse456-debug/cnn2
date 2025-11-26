@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import type { Challenge } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
