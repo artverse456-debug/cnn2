@@ -1,8 +1,43 @@
 import Link from "next/link";
+"use client";
+
+import { useState } from "react";
 import type { Challenge } from "@/lib/types";
 import { formatCurrency } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
 
-export function ChallengeCard({ challenge, compact }: { challenge: Challenge; compact?: boolean }) {
+export function ChallengeCard({
+  challenge,
+  compact,
+  onUpvote,
+  upvoted,
+}: {
+  challenge: Challenge;
+  compact?: boolean;
+  onUpvote?: (challenge: Challenge) => void;
+  upvoted?: boolean;
+}) {
+  const applyPointChange = useAuthStore((state) => state.applyPointChange);
+  const [isUpvoted, setIsUpvoted] = useState(false);
+  const resolvedUpvoted = upvoted ?? isUpvoted;
+
+  const handleUpvote = async () => {
+    if (resolvedUpvoted) return;
+
+    setIsUpvoted(true);
+
+    try {
+      if (onUpvote) {
+        await onUpvote(challenge);
+      } else {
+        await applyPointChange?.(1, "challenge", { challengeId: challenge.id, title: challenge.title, source: "upvote" });
+      }
+    } catch (error) {
+      console.error("Failed to upvote challenge", error);
+      setIsUpvoted(false);
+    }
+  };
+
   return (
     <div className="rounded-2xl border border-white/5 bg-white/5 p-5 text-sm text-white/80">
       <div className="flex items-start justify-between">
@@ -26,9 +61,19 @@ export function ChallengeCard({ challenge, compact }: { challenge: Challenge; co
       )}
       <div className="mt-4 flex items-center justify-between text-xs text-white/50">
         <p>{challenge.entriesLabel ?? `${challenge.entries} Einsendungen`}</p>
-        <Link href={`/challenges/${challenge.id}`} className="text-primary-light">
-          {challenge.linkLabel ?? "Details"}
-        </Link>
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={handleUpvote}
+            className="rounded-full border border-primary/20 px-3 py-1 font-semibold text-primary-light transition hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={resolvedUpvoted}
+          >
+            {resolvedUpvoted ? "Upvoted" : "Upvote"}
+          </button>
+          <Link href={`/challenges/${challenge.id}`} className="text-primary-light">
+            {challenge.linkLabel ?? "Details"}
+          </Link>
+        </div>
       </div>
     </div>
   );
