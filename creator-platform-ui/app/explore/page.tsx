@@ -165,7 +165,10 @@ export default function ExplorePage() {
     });
 
     try {
-      await applyPointChange?.(1, "challenge", { challengeId: challenge.id, title: challenge.title });
+      await applyPointChange?.(challenge.points ?? 1, "challenge", {
+        challengeId: challenge.id,
+        title: challenge.title,
+      });
     } catch (error) {
       console.error("Failed to reward challenge points", error);
       setCompletedMiniChallenges((prev) => {

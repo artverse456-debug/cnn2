@@ -117,7 +117,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
   applyPointChange: async (delta, type, metadata) => {
     const state = get();
-    if (!state.session?.user?.id) return state.profile;
+    if (!state.session?.user?.id) {
+      throw new Error("User must be authenticated to apply point changes");
+    }
 
     const currentBalance = state.profile?.points_balance ?? state.profile?.points ?? 0;
     const nextBalance = Math.max(0, currentBalance + delta);
@@ -137,7 +139,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (error) {
       console.error("Failed to apply point change", error);
       set({ profile: state.profile });
-      return state.profile;
+      throw error;
     }
   },
   applySubscriptionBonusIfNeeded: async () => {
