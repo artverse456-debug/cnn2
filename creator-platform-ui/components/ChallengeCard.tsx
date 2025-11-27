@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-"use client";
 
 import { useState } from "react";
 import type { Challenge } from "@/lib/types";
