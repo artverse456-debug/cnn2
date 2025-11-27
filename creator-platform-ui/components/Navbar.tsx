@@ -32,11 +32,14 @@ export function Navbar() {
     return "/logo.svg";
   }, [profile?.avatar_url]);
 
-  const filteredLinks = links.filter((link) => {
-    if (link.label === "Creator Hub") return isCreator();
-    if (link.label === "Fan Hub") return isFan();
-    return !loading;
-  });
+  const filteredLinks = useMemo(() => {
+    if (loading || !session || !role) return [];
+
+    if (role === "creator") return links.filter((link) => link.label === "Creator Hub");
+    if (role === "fan") return links.filter((link) => link.label === "Fan Hub");
+
+    return [];
+  }, [loading, session, role]);
 
   const handleLogout = async () => {
     try {
@@ -52,14 +55,19 @@ export function Navbar() {
     <header className="sticky top-0 z-50 backdrop-blur bg-black/40 border-b border-white/5">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <BrandLogo />
-        <nav className="hidden gap-6 text-sm text-white/80 md:flex">
-          {!loading &&
-            filteredLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-white transition">
-                {link.label}
-              </Link>
-            ))}
-        </nav>
+        {session ? (
+          <nav className="hidden gap-6 text-sm text-white/80 md:flex">
+            {loading ? (
+              <div className="h-4 w-20 rounded-full bg-white/10" aria-hidden />
+            ) : (
+              filteredLinks.map((link) => (
+                <Link key={link.href} href={link.href} className="hover:text-white transition">
+                  {link.label}
+                </Link>
+              ))
+            )}
+          </nav>
+        ) : null}
         <div className="flex items-center gap-3">
           {session && profile ? (
             <div className="relative">
