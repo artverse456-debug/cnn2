@@ -122,25 +122,21 @@ export default function SettingsPage() {
     setProfileMessage(nextProfile ? "Avatar aktualisiert." : "Avatar konnte nicht gespeichert werden.");
   };
 
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12 text-white/70">
-        Rolle wird geladen...
-      </div>
-    );
-  }
-
-  if (!role) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-12 text-white/70">
-        Profilrolle konnte nicht geladen werden.
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto max-w-4xl space-y-10 px-4 py-12">
       <h1 className="text-4xl font-semibold text-white">Settings</h1>
+
+      {loading ? (
+        <div className="rounded-3xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70">
+          Rolle wird geladen...
+        </div>
+      ) : null}
+
+      {!role ? (
+        <div className="rounded-3xl border border-white/5 bg-white/5 px-4 py-3 text-sm text-white/70">
+          Profilrolle konnte nicht geladen werden.
+        </div>
+      ) : null}
 
       <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
         <div className="flex items-center justify-between">
@@ -183,140 +179,146 @@ export default function SettingsPage() {
         {profileMessage ? <p className="text-xs text-white/60">{profileMessage}</p> : null}
       </section>
 
-      {role === "creator" ? (
-        <>
-          <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
+      <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-white">Zahlungsinformationen</h2>
+          <span className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/60">
+            Creator Hub
+          </span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="text-sm text-white/70">
+            Standard-Zahlungsmethode
+            <select
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-white"
+              value={defaultPayment}
+              onChange={(event) => setDefaultPayment(event.target.value)}
+            >
+              {["Visa **** 4242", "Mastercard **** 8899", "PayPal", "Apple Pay"].map((method) => (
+                <option key={method} value={method} className="bg-[#05050a] text-white">
+                  {method}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-white">Zahlungsinformationen</h2>
-              <span className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/60">
-                Creator Hub
-              </span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="text-sm text-white/70">
-                Standard-Zahlungsmethode
-                <select
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-transparent px-4 py-3 text-white"
-                  value={defaultPayment}
-                  onChange={(event) => setDefaultPayment(event.target.value)}
-                >
-                  {["Visa **** 4242", "Mastercard **** 8899", "PayPal", "Apple Pay"].map((method) => (
-                    <option key={method} value={method} className="bg-[#05050a] text-white">
-                      {method}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <div className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Automatische Reward-Benachrichtigung</p>
-                    <p className="text-xs text-white/60">Informiert dich, sobald Fans Rewards einlösen.</p>
-                  </div>
-                  <Toggle checked={autoRewardNotification} onChange={() => setAutoRewardNotification((prev) => !prev)} />
-                </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold text-white">Monatliche Payout-Übersicht</p>
-                    <p className="text-xs text-white/60">Zusammenfassung deiner Einnahmen per E-Mail.</p>
-                  </div>
-                  <Toggle checked={monthlyPointsEmail} onChange={() => setMonthlyPointsEmail((prev) => !prev)} />
-                </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Automatische Reward-Benachrichtigung</p>
+                <p className="text-xs text-white/60">Informiert dich, sobald Fans Rewards einlösen.</p>
               </div>
+              <Toggle checked={autoRewardNotification} onChange={() => setAutoRewardNotification((prev) => !prev)} />
             </div>
-          </section>
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-white">Monatliche Payout-Übersicht</p>
+                <p className="text-xs text-white/60">Zusammenfassung deiner Einnahmen per E-Mail.</p>
+              </div>
+              <Toggle checked={monthlyPointsEmail} onChange={() => setMonthlyPointsEmail((prev) => !prev)} />
+            </div>
+          </div>
+        </div>
+      </section>
 
-          <section className="space-y-6 rounded-3xl border border-white/5 bg-white/5 p-6">
-            <h2 className="text-2xl font-semibold text-white">Gruppen & Rewards verwalten</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-semibold text-white">Gruppen verwalten</p>
-                {creatorGroups.map((group) => (
-                  <div key={group.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70">
-                    <div>
-                      <p className="text-white">{group.name}</p>
-                      <p className="text-xs text-white/60">{group.members} Mitglieder · {group.price}</p>
-                    </div>
-                    <button className="text-sm text-primary-light">Details</button>
-                  </div>
-                ))}
-                <button className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:border-white/50">
-                  Neue Gruppe anlegen
-                </button>
-              </div>
-              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-semibold text-white">Rewards verwalten</p>
-                {creatorRewards.map((reward) => (
-                  <div key={reward.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70">
-                    <div>
-                      <p className="text-white">{reward.title}</p>
-                      <p className="text-xs text-white/60">{reward.points} Punkte</p>
-                    </div>
-                    <button className="text-sm text-primary-light">Bearbeiten</button>
-                  </div>
-                ))}
-                <button className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:border-white/50">
-                  Neuen Reward hinzufügen
-                </button>
-              </div>
-            </div>
-            <div className="grid gap-4 md:grid-cols-3">
-              {[
-                { label: "Rewards eingelöst", value: "1.2K" },
-                { label: "Premium-Gruppen", value: "5" },
-                { label: "Insight-Views", value: "18.4K" },
-              ].map((insight) => (
-                <div key={insight.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs uppercase tracking-[0.2em] text-white/60">{insight.label}</p>
-                  <p className="mt-2 text-2xl font-semibold text-white">{insight.value}</p>
+      <section className="space-y-6 rounded-3xl border border-white/5 bg-white/5 p-6">
+        <h2 className="text-2xl font-semibold text-white">Gruppen & Rewards verwalten</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <p className="text-sm font-semibold text-white">Gruppen verwalten</p>
+            {creatorGroups.map((group) => (
+              <div
+                key={group.id}
+                className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70"
+              >
+                <div>
+                  <p className="text-white">{group.name}</p>
+                  <p className="text-xs text-white/60">{group.members} Mitglieder · {group.price}</p>
                 </div>
-              ))}
-            </div>
-          </section>
-        </>
-      ) : (
-        <>
-          <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-semibold text-white">Fan-Einstellungen</h2>
-              <span className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/60">
-                Fan Hub
-              </span>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4 text-white">
-                <p className="text-xs uppercase tracking-[0.2em] text-white/70">Punktestand</p>
-                <p className="mt-3 text-4xl font-semibold">{profile?.points_balance ?? profile?.points ?? fanPoints} Punkte</p>
-                <p className="mt-2 text-sm text-white/70">Basierend auf Challenges, Gruppen und Rewards.</p>
+                <button className="text-sm text-primary-light">Details</button>
               </div>
-              <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-                <p className="text-sm font-semibold text-white">Punktverlauf</p>
-                {redeemedRewards.map((item) => (
-                  <div key={item.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70">
-                    <div>
-                      <p className="text-white">{item.action}</p>
-                      <p className="text-xs text-white/60">{item.timestamp}</p>
-                    </div>
-                    <span className="text-rose-300">{item.delta} Punkte</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-sm font-semibold text-white">Abos (Bezahl-Gruppen)</p>
-              {memberGroups.map((group) => (
-                <div key={group.id} className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70">
-                  <div>
-                    <p className="text-white">{group.name}</p>
-                    <p className="text-xs text-white/60">Creator: {group.creator} · {group.plan} · {group.totalPoints} Punkte</p>
-                  </div>
-                  <button className="text-sm text-primary-light">Zur Gruppe</button>
+            ))}
+            <button className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:border-white/50">
+              Neue Gruppe anlegen
+            </button>
+          </div>
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <p className="text-sm font-semibold text-white">Rewards verwalten</p>
+            {creatorRewards.map((reward) => (
+              <div
+                key={reward.id}
+                className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70"
+              >
+                <div>
+                  <p className="text-white">{reward.title}</p>
+                  <p className="text-xs text-white/60">{reward.points} Punkte</p>
                 </div>
-              ))}
+                <button className="text-sm text-primary-light">Bearbeiten</button>
+              </div>
+            ))}
+            <button className="w-full rounded-full border border-white/20 px-4 py-2 text-sm font-semibold text-white hover:border-white/50">
+              Neuen Reward hinzufügen
+            </button>
+          </div>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            { label: "Rewards eingelöst", value: "1.2K" },
+            { label: "Premium-Gruppen", value: "5" },
+            { label: "Insight-Views", value: "18.4K" },
+          ].map((insight) => (
+            <div key={insight.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/60">{insight.label}</p>
+              <p className="mt-2 text-2xl font-semibold text-white">{insight.value}</p>
             </div>
-          </section>
-        </>
-      )}
+          ))}
+        </div>
+      </section>
+
+      <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold text-white">Fan-Einstellungen</h2>
+          <span className="rounded-full border border-white/10 px-4 py-2 text-xs uppercase tracking-[0.3em] text-white/60">
+            Fan Hub
+          </span>
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4 text-white">
+            <p className="text-xs uppercase tracking-[0.2em] text-white/70">Punktestand</p>
+            <p className="mt-3 text-4xl font-semibold">{profile?.points_balance ?? profile?.points ?? fanPoints} Punkte</p>
+            <p className="mt-2 text-sm text-white/70">Basierend auf Challenges, Gruppen und Rewards.</p>
+          </div>
+          <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+            <p className="text-sm font-semibold text-white">Punktverlauf</p>
+            {redeemedRewards.map((item) => (
+              <div
+                key={item.id}
+                className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70"
+              >
+                <div>
+                  <p className="text-white">{item.action}</p>
+                  <p className="text-xs text-white/60">{item.timestamp}</p>
+                </div>
+                <span className="text-rose-300">{item.delta} Punkte</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <p className="text-sm font-semibold text-white">Abos (Bezahl-Gruppen)</p>
+          {memberGroups.map((group) => (
+            <div
+              key={group.id}
+              className="flex items-center justify-between rounded-xl border border-white/10 px-3 py-3 text-sm text-white/70"
+            >
+              <div>
+                <p className="text-white">{group.name}</p>
+                <p className="text-xs text-white/60">Creator: {group.creator} · {group.plan} · {group.totalPoints} Punkte</p>
+              </div>
+              <button className="text-sm text-primary-light">Zur Gruppe</button>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="space-y-4 rounded-3xl border border-white/5 bg-white/5 p-6">
         <h2 className="text-2xl font-semibold text-white">Benachrichtigungen</h2>
@@ -438,15 +440,13 @@ export default function SettingsPage() {
           </label>
         </div>
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:gap-4">
-          {role === "fan" ? (
-            <button
-              type="button"
-              onClick={handleSwitchToCreator}
-              className="flex-1 rounded-2xl border border-primary/50 bg-primary/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-primary"
-            >
-              Jetzt Creator werden
-            </button>
-          ) : null}
+          <button
+            type="button"
+            onClick={handleSwitchToCreator}
+            className="flex-1 rounded-2xl border border-primary/50 bg-primary/10 px-4 py-3 text-sm font-semibold text-white transition hover:border-primary"
+          >
+            Jetzt Creator werden
+          </button>
           <button
             type="button"
             onClick={handleLogout}

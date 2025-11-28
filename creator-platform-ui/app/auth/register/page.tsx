@@ -1,29 +1,17 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore, type UserRole } from "@/store/useAuthStore";
 
 export default function RegisterPage() {
-  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("creator");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
-  const profile = useAuthStore((state) => state.profile);
-  const session = useAuthStore((state) => state.session);
-  const loading = useAuthStore((state) => state.loading);
-
-  useEffect(() => {
-    if (loading || !session || !profile) return;
-
-    const nextRoute = profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
-    router.replace(nextRoute);
-  }, [loading, profile, router, session]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

@@ -1,12 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { DashboardCard } from "@/components/DashboardCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { Timeline } from "@/components/Timeline";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
 
 const memberGroups = [
   { id: "group-1", name: "Neon Render Lab", creator: "Mila Ray", totalPoints: 4820 },
@@ -22,34 +19,7 @@ const redeemedRewards = [
 
 export default function FanDashboard() {
   const { fanPoints } = useDashboardStore();
-  const router = useRouter();
-  const role = useAuthStore((state) => state.role);
-  const loading = useAuthStore((state) => state.loading);
-  const profile = useAuthStore((state) => state.profile);
-  const pointsBalance = profile?.points_balance ?? profile?.points ?? fanPoints;
-
-  useEffect(() => {
-    if (loading) return;
-    if (role === "creator") {
-      router.replace("/dashboard/creator");
-    }
-  }, [loading, role, router]);
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Rolle wird geladen...
-      </div>
-    );
-  }
-
-  if (!role) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Profilrolle konnte nicht geladen werden.
-      </div>
-    );
-  }
+  const pointsBalance = fanPoints;
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
