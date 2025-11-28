@@ -1,11 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { DashboardCard } from "@/components/DashboardCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { Timeline } from "@/components/Timeline";
-import { useRouter } from "next/navigation";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const memberGroups = [
@@ -22,34 +20,20 @@ const redeemedRewards = [
 
 export default function FanDashboard() {
   const { fanPoints } = useDashboardStore();
-  const router = useRouter();
-  const role = useAuthStore((state) => state.role);
-  const loading = useAuthStore((state) => state.loading);
   const profile = useAuthStore((state) => state.profile);
-  const pointsBalance = profile?.points_balance ?? profile?.points ?? fanPoints;
 
-  useEffect(() => {
-    if (loading) return;
-    if (role === "creator") {
-      router.replace("/dashboard/creator");
-    }
-  }, [loading, role, router]);
+  const dummyProfile = {
+    role: "fan" as const,
+    name: "Max Mustermann",
+    points_balance: 3200,
+    groups: memberGroups,
+    stats: {
+      redeemed: redeemedRewards.length,
+    },
+  };
 
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Rolle wird geladen...
-      </div>
-    );
-  }
-
-  if (!role) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Profilrolle konnte nicht geladen werden.
-      </div>
-    );
-  }
+  const profileToUse = profile ?? dummyProfile;
+  const pointsBalance = profileToUse.points_balance ?? profileToUse.points ?? fanPoints;
 
   return (
     <div className="mx-auto max-w-6xl space-y-10 px-4 py-12">
