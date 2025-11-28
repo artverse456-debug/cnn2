@@ -1,18 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { DashboardCard } from "@/components/DashboardCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
 import { formatCurrency } from "@/lib/utils";
-import { useRouter } from "next/navigation";
-import { useAuthStore } from "@/store/useAuthStore";
 
 export default function CreatorDashboard() {
   const { creatorBalance } = useDashboardStore();
-  const router = useRouter();
-  const role = useAuthStore((state) => state.role);
-  const loading = useAuthStore((state) => state.loading);
   const [postTitle, setPostTitle] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postContent, setPostContent] = useState("");
@@ -61,29 +56,6 @@ export default function CreatorDashboard() {
   );
 
   const latestPosts = useMemo(() => posts.slice(0, 3), [posts]);
-
-  useEffect(() => {
-    if (loading) return;
-    if (role === "fan") {
-      router.replace("/dashboard/fan");
-    }
-  }, [loading, role, router]);
-
-  if (loading) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Rolle wird geladen...
-      </div>
-    );
-  }
-
-  if (!role) {
-    return (
-      <div className="mx-auto max-w-6xl px-4 py-12 text-white/70">
-        Profilrolle konnte nicht geladen werden.
-      </div>
-    );
-  }
 
   const handlePublishPost = () => {
     if (!postTitle.trim() && !postContent.trim()) return;
