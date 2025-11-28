@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useState } from "react";
 import type { UserRole } from "@/store/useAuthStore";
 import { supabaseAuthClient } from "@/lib/supabaseClient";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -14,16 +14,6 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const initializeAuth = useAuthStore((state) => state.initialize);
-  const profile = useAuthStore((state) => state.profile);
-  const session = useAuthStore((state) => state.session);
-  const loading = useAuthStore((state) => state.loading);
-
-  useEffect(() => {
-    if (loading || !session || !profile) return;
-
-    const nextRoute = profile.role === "creator" ? "/dashboard/creator" : "/dashboard/fan";
-    router.replace(nextRoute);
-  }, [loading, profile, router, session]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -34,9 +24,9 @@ export default function LoginPage() {
       const result = await supabaseAuthClient.signIn(email, password);
       const nextProfile = await initializeAuth(result.session ?? null, result.session?.user?.user_metadata?.role as UserRole);
       const preferredRole = nextProfile?.role ?? (result.session?.user?.user_metadata?.role as UserRole | null) ?? "fan";
-      const nextRoute = preferredRole === "creator" ? "/dashboard/creator" : "/dashboard/fan";
 
-      router.push(nextRoute);
+      console.info("Login abgeschlossen (Rolle)", preferredRole);
+      router.push("/");
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login fehlgeschlagen.";
       setError(message);
