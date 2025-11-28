@@ -149,7 +149,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const subscriptionPoints = state.profile.subscription_points ?? 0;
     if (subscriptionPoints <= 0) return state.profile;
 
-    const alreadyReceived = await hasReceivedSubscriptionPointsThisWeek(state.session.access_token, userId);
+    const token = state.session?.access_token;
+    if (!token) return state.profile;
+
+    const alreadyReceived = await hasReceivedSubscriptionPointsThisWeek(token, userId);
 
     if (alreadyReceived) return state.profile;
 
