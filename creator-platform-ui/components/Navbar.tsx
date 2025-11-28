@@ -9,9 +9,9 @@ import { useMemo, useState } from "react";
 type UserRole = "creator" | "fan" | null;
 
 const links = [
-  { href: "/explore", label: "Explore" },
   { href: "/dashboard/creator", label: "Creator Hub" },
   { href: "/dashboard/fan", label: "Fan Hub" },
+  { href: "/explore", label: "Explore" },
   { href: "/payments", label: "Payments" },
   { href: "/settings", label: "Settings" }
 ];
@@ -19,11 +19,8 @@ const links = [
 export function Navbar() {
   const role = useAuthStore((state) => state.role);
   const profile = useAuthStore((state) => state.profile);
-  const loading = useAuthStore((state) => state.loading);
   const session = useAuthStore((state) => state.session);
   const clearAuth = useAuthStore((state) => state.clear);
-  const isCreator = useAuthStore((state) => state.isCreator);
-  const isFan = useAuthStore((state) => state.isFan);
   const pointsBalance = useAuthStore((state) => state.profile?.points_balance ?? state.profile?.points ?? 0);
   const [showDropdown, setShowDropdown] = useState(false);
 
@@ -31,12 +28,6 @@ export function Navbar() {
     if (profile?.avatar_url) return profile.avatar_url;
     return "/logo.svg";
   }, [profile?.avatar_url]);
-
-  const filteredLinks = links.filter((link) => {
-    if (link.label === "Creator Hub") return isCreator();
-    if (link.label === "Fan Hub") return isFan();
-    return !loading;
-  });
 
   const handleLogout = async () => {
     try {
@@ -53,12 +44,11 @@ export function Navbar() {
       <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
         <BrandLogo />
         <nav className="hidden gap-6 text-sm text-white/80 md:flex">
-          {!loading &&
-            filteredLinks.map((link) => (
-              <Link key={link.href} href={link.href} className="hover:text-white transition">
-                {link.label}
-              </Link>
-            ))}
+          {links.map((link) => (
+            <Link key={link.href} href={link.href} className="hover:text-white transition">
+              {link.label}
+            </Link>
+          ))}
         </nav>
         <div className="flex items-center gap-3">
           {session && profile ? (
