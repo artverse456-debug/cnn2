@@ -4,10 +4,13 @@ import { useMemo, useState } from "react";
 import { SectionHeader } from "@/components/SectionHeader";
 import { DashboardCard } from "@/components/DashboardCard";
 import { useDashboardStore } from "@/store/useDashboardStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { Timeline } from "@/components/Timeline";
 import { formatCurrency } from "@/lib/utils";
 
 export default function CreatorDashboard() {
   const { creatorBalance } = useDashboardStore();
+  const isCreator = useAuthStore((state) => state.isCreator());
   const [postTitle, setPostTitle] = useState("");
   const [postImage, setPostImage] = useState("");
   const [postContent, setPostContent] = useState("");
@@ -56,6 +59,54 @@ export default function CreatorDashboard() {
   );
 
   const latestPosts = useMemo(() => posts.slice(0, 3), [posts]);
+
+  const communityAnalytics = useMemo(
+    () =>
+      isCreator
+        ? {
+            fans: 18420,
+            topGroups: [
+              { id: "c1", name: "Core Supporters", share: "42%" },
+              { id: "c2", name: "VIP Creators Circle", share: "31%" },
+              { id: "c3", name: "Studio Drops", share: "18%" },
+            ],
+            avgMonthlyPoints: 3280,
+          }
+        : {
+            fans: 12400,
+            topGroups: [
+              { id: "p1", name: "Launch Crew", share: "38%" },
+              { id: "p2", name: "Hype Club", share: "29%" },
+              { id: "p3", name: "Backstage Beta", share: "22%" },
+            ],
+            avgMonthlyPoints: 2760,
+          },
+    [isCreator]
+  );
+
+  const engagementTimeline = useMemo(
+    () =>
+      isCreator
+        ? [
+            { id: "e1", action: "Post veröffentlicht: Summer Drop", timestamp: "Heute, 09:24", delta: 120 },
+            { id: "e2", action: "Reward eingelöst von Fan", timestamp: "Gestern, 18:05", delta: 85 },
+            { id: "e3", action: "Neues Gruppenmitglied", timestamp: "12. Mai 2025", delta: 60 },
+          ]
+        : [
+            { id: "pe1", action: "Post veröffentlicht: Preview", timestamp: "Heute, 07:45", delta: 90 },
+            { id: "pe2", action: "Reward eingelöst von Fan", timestamp: "Gestern, 15:10", delta: 70 },
+            { id: "pe3", action: "Neues Gruppenmitglied", timestamp: "10. Mai 2025", delta: 55 },
+          ],
+    [isCreator]
+  );
+
+  const revenuePreview = useMemo(
+    () => ({
+      monthlyRevenue: isCreator ? 245 : 198,
+      growth: isCreator ? 0.12 : 0.08,
+    }),
+    [isCreator]
+  );
 
   const handlePublishPost = () => {
     if (!postTitle.trim() && !postContent.trim()) return;
@@ -293,6 +344,67 @@ export default function CreatorDashboard() {
               <span className="text-sm text-primary-light">Top 3</span>
             </div>
           ))}
+        </div>
+      </DashboardCard>
+
+      <DashboardCard
+        title="Community Analytics"
+        subtitle="audience"
+        action={
+          <span className="rounded-full border border-white/10 px-3 py-1 text-xs text-white/70">
+            {isCreator ? "Live" : "Public Preview"}
+          </span>
+        }
+      >
+        <div className="grid gap-4 md:grid-cols-3">
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-sm text-white/60">Fans</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{communityAnalytics.fans.toLocaleString()}</p>
+            <p className="text-xs text-white/60">Gesamt Community Reach</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-sm text-white/60">Top Fan-Gruppen</p>
+            <ul className="mt-3 space-y-2 text-sm text-white">
+              {communityAnalytics.topGroups.map((group) => (
+                <li key={group.id} className="flex items-center justify-between rounded-xl border border-white/5 bg-white/5 px-3 py-2">
+                  <span>{group.name}</span>
+                  <span className="text-primary-light">{group.share}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4">
+            <p className="text-sm text-white/60">Ø monatliche Punktevergabe</p>
+            <p className="mt-3 text-3xl font-semibold text-white">{communityAnalytics.avgMonthlyPoints.toLocaleString()} pts</p>
+            <p className="text-xs text-white/60">Basierend auf Challenges & Rewards</p>
+          </div>
+        </div>
+      </DashboardCard>
+
+      <DashboardCard
+        title="Engagement Timeline"
+        subtitle="activity"
+        action={<span className="text-xs text-white/60">Dummy Events</span>}
+      >
+        <Timeline items={engagementTimeline} />
+      </DashboardCard>
+
+      <DashboardCard
+        title="Revenue Preview"
+        subtitle="growth"
+        action={<span className="text-xs text-white/60">{isCreator ? "Ausblick" : "Preview Mode"}</span>}
+      >
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="rounded-2xl border border-primary/40 bg-primary/10 p-4 text-white">
+            <p className="text-sm uppercase tracking-[0.2em] text-white/70">Monatlicher Umsatz</p>
+            <p className="mt-3 text-4xl font-semibold">{formatCurrency(revenuePreview.monthlyRevenue, "EUR")}</p>
+            <p className="mt-2 text-sm text-white/70">Prognose basierend auf Abos & Rewards</p>
+          </div>
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-white">
+            <p className="text-sm text-white/60">Wachstum (vs. letzter Monat)</p>
+            <p className="mt-3 text-4xl font-semibold text-emerald-400">+{Math.round(revenuePreview.growth * 100)}%</p>
+            <p className="text-xs text-white/60">Simulation mit Dummy-Daten</p>
+          </div>
         </div>
       </DashboardCard>
     </div>
