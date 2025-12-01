@@ -58,7 +58,9 @@ export const supabaseAuthClient = {
     const verificationCode = code ?? searchParams.get("code");
 
     if (verificationCode) {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(verificationCode);
+      const { data, error } = await supabase.auth.exchangeCodeForSession({
+        code: verificationCode,
+      });
       if (error) throw error;
 
       const cleanedUrl = new URL(window.location.href);
